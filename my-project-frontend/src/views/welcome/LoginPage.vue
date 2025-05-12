@@ -5,7 +5,6 @@ import {login} from "@/net/index.js";
 import {reactive, ref} from "vue";
 import router from "@/router/index.js";
 const formRef=ref()
-
 const form=reactive(
     {
       username:'',
@@ -32,10 +31,10 @@ function userLogin(){
 <template>
    <div style="text-align:center;margin: 0 20px;">
      <div style="margin-top:150px">
-         <div style="font-size:25px;font-weight:bold">登录</div>
-         <div style="font-size: 14px;color:gray">请输入用户名和密码进行登录</div>
+         <div style="font-size:40px;font-weight:bold">登录</div>
+         <div style="font-size: 14px;color:gray;margin-top: 40px">请输入用户名和密码进行登录</div>
      </div>
-     <div style="margin-top:50px;margin-bottom:40px">
+     <div style="margin-top:30px;margin-bottom:40px">
          <el-form :model="form" :rules="rule" ref="formRef">
            <el-form-item prop="username" >
              <el-input v-model="form.username" maxlength="20" type="text" placeholder="请输入用户名或邮箱">
@@ -64,13 +63,13 @@ function userLogin(){
          </el-form>
      </div>
      <div style="margin-top:30px">
-       <el-button @click="userLogin" style="width: 270px" type="success" plain>立即登录</el-button>
+       <el-button @click="userLogin" style="width: 270px" type="primary">登录</el-button>
      </div>
      <el-divider style="margin-top:30px;margin-bottom:40px">
        <span style="font-size:15px;color:gray">还没有账号?</span>
      </el-divider>
      <div>
-       <el-button type="warning" style="width: 270px" plain>立即注册</el-button>
+       <el-button @click="router.push('/register')" type="warning" style="width: 270px" plain>立即注册</el-button>
      </div>
    </div>
 </template>

@@ -1,7 +1,5 @@
 <script setup>
-
 </script>
-
 <template>
  <div style="width:100vw;height:100vh;overflow: hidden;display:flex">
    <div style="flex: 1">
@@ -15,7 +13,11 @@
    </div>
 
    <div class="right-card">
-     <router-view/>
+     <router-view v-slot="{Component}">
+       <transition name="el-fade-in-linear"  mode="out-in">
+         <component :is="Component"/>
+       </transition>
+     </router-view>
    </div>
  </div>
 </template>

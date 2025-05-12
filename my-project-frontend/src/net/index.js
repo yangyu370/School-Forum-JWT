@@ -75,7 +75,7 @@ function login(username,password,remember,success,failure=defaultFailure){
         'Content-Type': 'application/x-www-form-urlencoded'
     },(data)=>{
          storeAccessToken(data.token,remember,data.expire)
-         ElMessage.success(`登录成功,欢迎${username}来到我们系统！`)
+         ElMessage.success(`登录成功,欢迎${username}！`)
          success(data)
     },failure)
 }
@@ -89,4 +89,4 @@ function logout(success,failure=defaultFailure){
        failure(message,code,url)
    })
 }
-export {login,logout,get,unauthorized}
+export {login,logout,get,unauthorized,post}

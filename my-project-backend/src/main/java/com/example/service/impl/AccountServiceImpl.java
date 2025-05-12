@@ -1,18 +1,25 @@
 package com.example.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dto.Account;
+import com.example.entity.vo.request.EmailRegisterVO;
 import com.example.mapper.AccountMapper;
 import com.example.service.AccountService;
 import com.example.utils.Const;
 import com.example.utils.FlowUtils;
 import jakarta.annotation.Resource;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -20,11 +27,16 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> implements AccountService {
     @Resource
+    PasswordEncoder encoder;
+    @Resource
     FlowUtils flowUtils;
     @Resource
     AmqpTemplate amqpTemplate;
     @Resource
     StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Account account=this.getAccountByNameOrEmail(username);
@@ -61,8 +73,42 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
             return null;
         }
     }
+
+    @Override
+    public String RegisterEmailAccount(EmailRegisterVO vo) {
+        String email=vo.getEmail();
+        String code=stringRedisTemplate.opsForValue().get(Const.VERIFY_EMAIL_LIMIT+email);
+        String username=vo.getUsername();
+        if(code==null){
+             return "请先获取验证码";
+        }
+        if(!code.equals(vo.getCode())){
+            return "验证码输入错误请重新输入";
+        }
+        if(this.existsAccountByEmail(email)){
+            return "该邮件已被其他用户注册,请更换邮箱";
+        }
+        if(this.existsAccountByUsername(username)){
+            return "此用户名已被其他用户注册,请换个新的";
+        }
+        String password=encoder.encode(vo.getPassword());
+        Account account=new Account(null,username,password,email,"user",new Date());
+        if (this.save(account)) {
+            stringRedisTemplate.delete(Const.VERIFY_EMAIL_LIMIT+email);
+            return null;
+        }else{
+            return "内部错误，请联系管理员";
+        }
+    }
+
     private boolean verifyLimit(String ip){
         String key = Const.VERIFY_EMAIL_LIMIT+ip;
         return flowUtils.limitOnceCheck(key,60);
+    }
+    private boolean existsAccountByEmail(String email){
+        return this.baseMapper.exists(Wrappers.<Account>query().eq("email",email));
+    }
+    private boolean existsAccountByUsername(String username){
+        return this.baseMapper.exists(Wrappers.<Account>query().eq("username",username));
     }
 }
