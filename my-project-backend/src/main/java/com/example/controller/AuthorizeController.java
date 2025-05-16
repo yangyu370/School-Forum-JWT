@@ -1,7 +1,9 @@
 package com.example.controller;
 
 import com.example.entity.RestBean;
+import com.example.entity.vo.request.ConfirmResetVO;
 import com.example.entity.vo.request.EmailRegisterVO;
+import com.example.entity.vo.request.EmailResetVO;
 import com.example.service.AccountService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,5 +33,13 @@ public class AuthorizeController {
     private RestBean<Void> messageHandler(Supplier<String> action){
         String message=action.get();
         return message==null?RestBean.success():RestBean.failure(400,message);
+    }
+    @PostMapping("/reset-confirm")
+    public RestBean<Void> resetConfirm(@RequestBody @Valid ConfirmResetVO vo){
+        return this.messageHandler(()->accountService.resetConfirm(vo));
+    }
+    @PostMapping("/reset-password")
+    public RestBean<Void> resetPassword(@RequestBody @Valid EmailResetVO vo){
+        return this.messageHandler(()->accountService.resetEmailAccountPassword(vo));
     }
 }
