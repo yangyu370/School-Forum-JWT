@@ -8,4 +8,5 @@ public class Const {
     public final static String VERIFY_EMAIL_DATA = "verify:email:data:";
     public final static String FLOW_LIMIT_COUNTER = "flow:counter:";
     public final static String FLOW_LIMIT_BLOCK = "flow:block:";
+    public final static String ATTR_USER_ID = "userId";
 }
