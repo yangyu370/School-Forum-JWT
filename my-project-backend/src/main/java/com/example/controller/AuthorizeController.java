@@ -23,7 +23,7 @@ public class AuthorizeController {
     AccountService accountService;
     @GetMapping("/ask-code")
     public RestBean<Void> askCode(@RequestParam @Email String email
-            , @RequestParam @Pattern(regexp="(register|reset)")String type, HttpServletRequest request){
+            , @RequestParam @Pattern(regexp="(register|reset|modify)")String type, HttpServletRequest request){
         return this.messageHandler(()->accountService.RegisterEmailVerifyCode(type,email,request.getRemoteAddr()));
     }
     @PostMapping("/register")

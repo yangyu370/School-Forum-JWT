@@ -76,6 +76,31 @@ get('/api/user/details',data=>{
   loading.form=false
   emailForm.email=store.user.email
 })
+const coldTime=ref(0)
+const isEmailValidate=computed(()=>{
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailForm.email)
+})
+function askCode(){
+  if(isEmailValidate){
+    coldTime.value=60
+    get(`/api/auth/ask-code?email=${emailForm.email}&type=modify`,()=>{
+      ElMessage.success("验证码已发送到您的邮箱,请注意查收!")
+      setInterval(()=>coldTime.value--,1000)
+    },(message)=>{
+      ElMessage.warning(message)
+      coldTime.value=0})
+  }
+  else ElMessage.error("请输入正确的电子邮件格式！")
+}
+function modifyEmail(){
+  emailFormRef.value.validate(isValid=>{
+       post('api/user/modify-email',emailForm,()=>{
+          ElMessage.success("邮件修改成功！")
+          store.user.email=emailForm.email
+          emailForm.code=''
+       })
+  })
+}
 </script>
 
 <template>
@@ -120,13 +145,15 @@ get('/api/user/details',data=>{
                       <el-input placeholder="请获取验证码" v-model="emailForm.code"></el-input>
                     </el-col>
                     <el-col :span="6" style="width: 100%;padding-left: 1px;padding-right: 1px">
-                      <el-button type="primary" style="width: 100%;margin-right: 0;padding-right: 0">获取验证码</el-button>
+                      <el-button type="primary" style="width: 100%;margin-right: 0;padding-right: 0"  @click="askCode"
+                                 :disabled="!isEmailValidate || coldTime > 0"> {{coldTime > 0 ? '请稍后 ' + coldTime + ' 秒' : '获取验证码'}}
+                      </el-button>
                     </el-col>
                   </el-row>
                </el-form-item>
              </el-form>
              <div style="text-align: right;margin-right:15px">
-                <el-button :icon="Refresh" type="primary" style="">更新</el-button>
+                <el-button :icon="Refresh" type="primary" @click="modifyEmail">更新</el-button>
              </div>
            </card>
          </div>
