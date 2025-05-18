@@ -9,4 +9,5 @@ public class Const {
     public final static String FLOW_LIMIT_COUNTER = "flow:counter:";
     public final static String FLOW_LIMIT_BLOCK = "flow:block:";
     public final static String ATTR_USER_ID = "userId";
+    public static final String FORUM_WEATHER_CACHE = "weather:cache:";
 }

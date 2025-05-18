@@ -107,7 +107,7 @@ function modifyEmail(){
 </script>
 
 <template>
-   <div style="display: flex;max-width: 1200px;margin:auto">
+   <div style="display: flex;max-width: 1100px;margin:auto">
          <div class="setting-left">
              <card :icon="User" title="账号信息设置" desc="在这里更改您的个人的信息，你可以在隐私设置中选择是否展示这些信息" v-loading="loading.form">
                 <el-form :model="baseForm" :rules="rules" ref="baseFormRef" label-position="top" style="margin: 0 10px 10px 10px">

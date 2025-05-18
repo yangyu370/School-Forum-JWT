@@ -75,7 +75,7 @@ function savePrivacy(type,status){
 </script>
 
 <template>
-<div style="margin:auto;max-width: 900px">
+<div style="margin:auto;max-width: 1000px">
   <div style="margin-top: 20px">
    <card :icon="Setting" title="隐私设置" desc="在这里设置个人隐私相关的信息，请各位小伙伴注意保护自己的隐私" v-loading="saving">
       <div class="checkbox-list">

@@ -87,7 +87,7 @@ get("api/user/info",(data)=>{
                     <el-icon><Location/></el-icon>
                     <span><b>校园论坛</b></span>
                   </template>
-                  <el-menu-item index="1-1">
+                  <el-menu-item index="/index">
                     <template #title>
                       <el-icon><chat-dot-square/></el-icon>
                       帖子广场
