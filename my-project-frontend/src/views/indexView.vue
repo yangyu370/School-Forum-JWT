@@ -166,7 +166,7 @@ get("api/user/info",(data)=>{
                       个人信息设置
                     </template>
                   </el-menu-item>
-                  <el-menu-item index="/index/security-setting">
+                  <el-menu-item index="/index/privacy-setting">
                     <template #title>
                       <el-icon><Lock/></el-icon>
                       账号安全设置
