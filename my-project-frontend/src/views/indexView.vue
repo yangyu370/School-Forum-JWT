@@ -3,20 +3,22 @@ import {logout} from "@/net/index.js";
 import router from "@/router/index.js";
 import {get} from "@/net/index.js"
 import {useStore} from "@/store/index.js";
-import { ref,reactive } from 'vue';
+import { ref,reactive,onMounted} from 'vue';
 import {
   Back,
   Bell,
-  ChatDotRound,
   ChatDotSquare, Collection, DataLine,
   Document, Files,
   Location, Lock, Message, Monitor,
-  Notification, Operation, Position,
+  Notification, Operation, Position, Moon,
   School, Search,
-  Umbrella, User
+  Umbrella, User, Sunny
 } from '@element-plus/icons-vue'
 function userLogout(){
    logout(()=>router.push('/'))
+}
+function goUserSetting(){
+   router.push('/index/user-setting')
 }
 const store=useStore()
 const loading=ref(true)
@@ -28,6 +30,25 @@ get("api/user/info",(data)=>{
   store.user=data
   loading.value=false;
 })
+const isDark = ref(false)
+onMounted(() => {
+  isDark.value = localStorage.getItem('dark-mode') === 'true'
+  updateDarkClass()
+})
+
+const toggleDarkMode = () => {
+  localStorage.setItem('dark-mode', isDark.value)
+  updateDarkClass()
+}
+
+const updateDarkClass = () => {
+  const html = document.documentElement
+  if (isDark.value) {
+    html.classList.add('dark')
+  } else {
+    html.classList.remove('dark')
+  }
+}
 
 </script>
 
@@ -52,14 +73,24 @@ get("api/user/info",(data)=>{
              </el-input>
           </div>
           <div class="user-info">
+              <div class="flex items-center p-4">
+                <el-switch
+                    v-model="isDark"
+                    :active-icon="Moon"
+                    :inactive-icon="Sunny"
+                    :style="switchStyle"
+                    @change="toggleDarkMode"
+                    style="margin-right: 20px"
+                />
+              </div>
             <div class="profile">
                  <div>{{store.user.username}}</div>
                  <div>{{store.user.email}}</div>
             </div>
             <el-dropdown>
-              <el-avatar  src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"/>
+              <el-avatar  :src="store.avatarUrl"/>
               <template #dropdown>
-                <el-dropdown-item>
+                <el-dropdown-item @click="goUserSetting">
                   <el-icon><operation/></el-icon>
                   个人设置
                 </el-dropdown-item>
@@ -73,7 +104,6 @@ get("api/user/info",(data)=>{
                 </el-dropdown-item>
               </template>
             </el-dropdown>
-
           </div>
         </el-header>
         <el-container>

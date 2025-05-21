@@ -49,18 +49,29 @@ const getWeather = (longitude, latitude) => {
 onMounted(() => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      position => {
+      (position) => {
         const { longitude, latitude } = position.coords
         getWeather(longitude, latitude)
       },
-      error => {
-        console.error('获取位置失败:', error)
-        ElMessage.warning("无法获取位置信息，使用默认位置")
-        // 使用默认位置（北京）
-        getWeather(116.41, 39.92)
+      (error) => {
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                console.error("用户拒绝了地理位置请求。");
+                // 在这里添加用户拒绝地理位置访问时的处理逻辑
+                break;
+            case error.POSITION_UNAVAILABLE:
+                console.error("地理位置信息不可用。");
+                break;
+            case error.TIMEOUT:
+                console.error("请求地理位置超时。");
+                break;
+            default:
+                console.error("获取地理位置时发生未知错误。");
+                break;
+        }
       },
       {
-        timeout: 3000,
+        timeout: 30000,
         enableHighAccuracy: true
       }
     )
@@ -115,7 +126,7 @@ onMounted(() => {
            </div>
            <div class="info-text">
              <div>当前ip地址</div>
-             <div style="color: black">{{ip}}</div>
+             <div>{{ip}}</div>
            </div>
          </light-card>
          <div style="color: grey;font-size: 14px;margin-top: 20px">

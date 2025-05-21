@@ -89,4 +89,4 @@ function logout(success,failure=defaultFailure){
        failure(message,code,url)
    })
 }
-export {login,logout,get,unauthorized,post}
+export {login,logout,get,unauthorized,post,accessHeader}

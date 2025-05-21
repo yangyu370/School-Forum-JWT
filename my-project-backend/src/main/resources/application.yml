@@ -21,3 +21,11 @@ spring:
     password: 12345678
   weather:
     key: d7428a1b805f4e8e9fe9806cb3f39fbe
+  minio:
+    endpoint: 'http://localhost:9000'
+    username: 'minio'
+    password: 'password'
+  servlet:
+    multipart:
+      max-request-size: 10MB
+      max-file-size: 10MB
