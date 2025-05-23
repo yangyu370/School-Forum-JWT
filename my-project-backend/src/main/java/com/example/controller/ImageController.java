@@ -21,12 +21,25 @@ public class ImageController {
         if (file.getSize() > 1024 * 1024 * 10)
             return RestBean.failure(400, "头像图片不能大于10MB");
         log.info("正在进行头像上传操作...");
-        String url = imageService.upload(file, id);
+        String url = imageService.uploadAvatar(file, id);
         if (url != null) {
             log.info("头像上传成功,大小为" + file.getSize());
             return RestBean.success(url);
         } else {
             return RestBean.failure(400, "头像上传失败,请联系管理员");
+        }
+    }
+    @PostMapping("/cache")
+    public RestBean<String> uploadCache(@RequestParam("file") MultipartFile file,@RequestAttribute("id") int id) throws Exception {
+        if (file.getSize() > 1024 * 1024 * 10)
+            return RestBean.failure(400, "图片不能大于10MB");
+        log.info("正在进行图片上传操作...");
+        String url= imageService.uploadImage(file,id);
+        if (url != null) {
+            log.info("图片上传成功,大小为" + file.getSize());
+            return RestBean.success(url);
+        } else {
+            return RestBean.failure(400, "图片上传失败,请联系管理员");
         }
     }
 }

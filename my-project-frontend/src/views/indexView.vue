@@ -111,6 +111,7 @@ const updateDarkClass = () => {
             <el-scrollbar style="height: calc(100vh - 55px)">
               <el-menu router
                        :default-active="$route.path"
+                       :default-openeds="['1','2','3']"
                        style="min-height: calc(100vh - 55px)">
                 <el-sub-menu index="1">
                   <template #title>

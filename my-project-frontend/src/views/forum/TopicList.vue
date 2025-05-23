@@ -5,6 +5,7 @@ import { Calendar, CollectionTag, EditPen, Link } from "@element-plus/icons-vue"
 import Weather from "@/components/Weather.vue";
 import { get } from "@/net/index.js";
 import { ElMessage } from "element-plus";
+import TopicEditor from "@/components/TopicEditor.vue";
 
 const today = computed(() => {
   const date = new Date()
@@ -81,13 +82,14 @@ onMounted(() => {
     getWeather(116.41, 39.92)
   }
 })
+const editor=ref(false);
 </script>
 
 <template>
   <div style="display: flex;margin:20px auto;gap: 20px;max-width: 1100px">
     <div style="flex: 1">
          <light-card>
-            <div class="create-topic">
+            <div class="create-topic" @click="editor=true">
               <el-icon><EditPen/></el-icon>
                点击发表主题...
             </div>
@@ -144,6 +146,9 @@ onMounted(() => {
          </div>
        </div>
      </div>
+     <div>
+        <topic-editor :show="editor" @close="editor=false" @success="editor=false"/>
+     </div>
   </div>
 </template>
 
@@ -169,5 +174,8 @@ onMounted(() => {
   &:hover {
     cursor: pointer;
   }
+}
+.dark .create-topic{
+  background-color: #232323;
 }
 </style>

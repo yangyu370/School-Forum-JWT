@@ -49,7 +49,7 @@ public class FLowLimitFilter extends HttpFilter {
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(Const.FLOW_LIMIT_COUNTER+ip))) {
             Long increment= Optional.ofNullable(stringRedisTemplate.opsForValue().increment(Const.FLOW_LIMIT_COUNTER+ip)).orElse(0L);
             if(increment>20){
-                stringRedisTemplate.opsForValue().set(Const.FLOW_LIMIT_BLOCK+ip,"",30, TimeUnit.SECONDS);
+                stringRedisTemplate.opsForValue().set(Const.FLOW_LIMIT_BLOCK+ip,"",180, TimeUnit.SECONDS);
             }
 
         }else{
