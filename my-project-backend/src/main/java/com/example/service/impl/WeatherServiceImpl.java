@@ -31,8 +31,8 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     private WeatherVO fetchFromCache(double longitude, double latitude){
-        longitude = Math.round(longitude * 100.0) / 100.0;
-        latitude = Math.round(latitude * 100.0) / 100.0;
+//        longitude = Math.round(longitude * 100.0) / 100.0;
+//        latitude = Math.round(latitude * 100.0) / 100.0;
         JSONObject geo = this.decompressStingToJson(rest.getForObject(
                 "https://me487qq4gv.re.qweatherapi.com/geo/v2/city/lookup?location="+longitude+","+latitude+"&key="+key, byte[].class));
         if(geo == null) return null;

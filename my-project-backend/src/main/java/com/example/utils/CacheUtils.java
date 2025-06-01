@@ -1,0 +1,40 @@
+package com.example.utils;
+
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import jakarta.annotation.Resource;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+@Component
+public class CacheUtils {
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
+
+    public <T> void saveListToCache(String key, List<T> list, long expire) {
+        stringRedisTemplate.opsForValue().set(key, JSONArray.from(list).toJSONString(),expire, TimeUnit.SECONDS);
+    }
+    public <T> void saveToCache(String key,T data,long expire) {
+        stringRedisTemplate.opsForValue().set(key, JSONObject.from(data).toJSONString(),expire, TimeUnit.SECONDS);
+    }
+    public <T>  List<T> TakeListFromCache(String key,Class<T> itemType){
+        String s=stringRedisTemplate.opsForValue().get(key);
+        if(s==null) return null;
+        return JSONArray.parseArray(s).toList(itemType);
+    }
+    public <T> T removeFromCache(String key,Class<T> dataType){
+        String s=stringRedisTemplate.opsForValue().get(key);
+        if(s==null) return null;
+        return JSONObject.parseObject(s).to(dataType);
+    }
+    public void deleteFromCachePattern(String key){
+         Set<String> keys= Optional.ofNullable(stringRedisTemplate.keys(key)).orElse(Collections.emptySet()) ;
+         stringRedisTemplate.delete(keys);
+    }
+    public void deleteFromCache(String key){
+        stringRedisTemplate.delete(key);
+    }
+}

@@ -12,4 +12,5 @@ public class Const {
     public static final String FORUM_WEATHER_CACHE = "weather:cache:";
     public static final String FORUM_IMAGE_CACHE = "forum:image:";
     public static final String FORUM_TOPIC_COUNTER = "topic:create:";
+    public static final String FORUM_TOPIC_PREVIEW_CACHE = "forum:preview:cache:";
 }

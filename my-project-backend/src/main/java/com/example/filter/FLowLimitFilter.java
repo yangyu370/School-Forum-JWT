@@ -28,33 +28,31 @@ public class FLowLimitFilter extends HttpFilter {
         if(this.trycount(ip)){
             chain.doFilter(request, response);
         }else{
-            this.writeBlcokMessage(response);
+            this.writeBlockMessage(response);
         }
     }
-    private void writeBlcokMessage(HttpServletResponse response) throws IOException {
+    private void writeBlockMessage(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=utf-8");
         response.getWriter().write("操作频繁请稍后再试");
     }
     private boolean trycount(String ip){
         synchronized (ip.intern()) {
-            if(Boolean.TRUE.equals(stringRedisTemplate.hasKey(Const.FLOW_LIMIT_BLOCK+ip)))
+            if(stringRedisTemplate.hasKey(Const.FLOW_LIMIT_BLOCK + ip))
                 return false;
             return this.limitPeriodBlock(ip);
         }
-
-
     }
     private boolean limitPeriodBlock(String ip){
-        if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(Const.FLOW_LIMIT_COUNTER+ip))) {
-            Long increment= Optional.ofNullable(stringRedisTemplate.opsForValue().increment(Const.FLOW_LIMIT_COUNTER+ip)).orElse(0L);
-            if(increment>20){
-                stringRedisTemplate.opsForValue().set(Const.FLOW_LIMIT_BLOCK+ip,"",180, TimeUnit.SECONDS);
+        if (stringRedisTemplate.hasKey(Const.FLOW_LIMIT_COUNTER + ip)) {
+            Long increment = Optional.ofNullable(stringRedisTemplate.opsForValue().increment(Const.FLOW_LIMIT_COUNTER+ip)).orElse(0L);
+            if(increment > 50){
+                stringRedisTemplate.opsForValue().set(Const.FLOW_LIMIT_BLOCK+ip, "", 180, TimeUnit.SECONDS);
+                return false; // 当请求次数超过阈值时，返回false阻止请求
             }
-
-        }else{
-            stringRedisTemplate.opsForValue().set(Const.FLOW_LIMIT_COUNTER+ip,"1",3, TimeUnit.SECONDS);
+        } else {
+            stringRedisTemplate.opsForValue().set(Const.FLOW_LIMIT_COUNTER+ip, "1", 3, TimeUnit.SECONDS);
         }
-     return true;
+        return true;
     }
 }

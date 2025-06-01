@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +16,14 @@ import java.io.IOException;
 @Component
 @Order(Const.ORDER_CORS)
 public class CorsFilter extends HttpFilter {
+
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         this.addCorsHeader(response,request);
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
         chain.doFilter(request, response);
 
     }
@@ -26,4 +32,5 @@ public class CorsFilter extends HttpFilter {
          response.setHeader("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE,OPTIONS,HEAD,PATCH,TRACE");
          response.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type");
     }
+
 }
