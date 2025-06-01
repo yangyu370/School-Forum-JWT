@@ -6,6 +6,7 @@ import com.example.entity.dto.Interact;
 import com.example.entity.dto.Topic;
 import com.example.entity.dto.TopicType;
 import com.example.entity.vo.request.TopicCreateVO;
+import com.example.entity.vo.request.TopicUpdateVO;
 import com.example.entity.vo.response.TopTopicVO;
 import com.example.entity.vo.response.TopicDetailVO;
 import com.example.entity.vo.response.TopicPreviewVO;
@@ -20,4 +21,5 @@ public interface TopicService extends IService<Topic> {
    TopicDetailVO getTopicDetail(int tid,int uid);
    void  interact(Interact interact,Boolean state);
    List<TopicPreviewVO> listTopicCollects(int uid);
+   String updateTopic(int uid, TopicUpdateVO vo);
 }

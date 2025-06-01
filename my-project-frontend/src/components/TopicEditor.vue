@@ -3,7 +3,7 @@ import ImageResize from "quill-image-resize-vue";
 import { ImageExtend,QuillWatch } from "quill-image-super-solution-module";
 import {Document, Position} from "@element-plus/icons-vue";
 import {reactive, ref} from "vue";
-import {Quill, QuillEditor} from "@vueup/vue-quill";
+import {Delta, Quill, QuillEditor} from "@vueup/vue-quill";
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import {ElMessage} from "element-plus";
 import {accessHeader,get,post} from "@/net/index.js";
@@ -12,8 +12,37 @@ import axios from "axios";
 import ColorDot from "@/components/ColorDot.vue";
 import {useStore} from "@/store/index.js";
 const store = useStore();
-defineProps({
-  show:Boolean
+const props=defineProps({
+  show:Boolean,
+  defaultTitle:{
+    type:String,
+    default:''
+  },
+  defaultText:{
+    type:String,
+    default:''
+  },
+  defaultType:{
+    type:Number,
+    default:null
+  },
+  submitButton:{
+    default:'立即发表',
+    type:String,
+  },
+  submit:{
+    default:(editor,success)=>{
+      post("api/forum/create-topic",{
+        type:editor.type.id,
+        title:editor.title,
+        content:editor.text,
+      },()=>{
+        ElMessage.success("帖子发表成功!")
+        success();
+      })
+    },
+    type:Function
+  }
 })
 const emit=defineEmits(['close','success'])
 const refEditor=ref()
@@ -24,9 +53,19 @@ const editor=reactive({
   loading:false,
 })
 function initEditor(){
-  refEditor.value.setContents(' ','user')
-  editor.title=''
-  editor.type=null
+  if(props.defaultText)
+    editor.text=new Delta(JSON.parse(props.defaultText));
+  else
+    refEditor.value.setContents(' ','user')
+  editor.title=props.defaultTitle
+  editor.type=findTypeById(props.defaultType)
+}
+function findTypeById(id){
+  for(let type of store.forum.types){
+    if(type.id === id){
+        return type
+    }
+  }
 }
 Quill. register( 'modules/imageResize', ImageResize)
 Quill. register( 'modules/ImageExtend', ImageExtend)
@@ -51,14 +90,7 @@ function submitText(){
      ElMessage.warning("请选择合适的帖子类型！")
      return
    }
-  post("api/forum/create-topic",{
-    type:editor.type.id,
-    title: editor.title,
-    content: editor.text
-  },()=>{
-    ElMessage.success("帖子发表成功!")
-    emit('success')
-  })
+   props.submit(editor,()=>emit('success'))
 }
 const contentLength=computed(()=>deltaToText(editor.text).length)
 const editorOption={
@@ -157,7 +189,7 @@ const editorOption={
          </div>
          <div>
            <el-button type="primary" :icon="Position" @click="submitText">
-               立即发表主题
+               {{submitButton}}
            </el-button>
          </div>
 

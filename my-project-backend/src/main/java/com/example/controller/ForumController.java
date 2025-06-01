@@ -4,6 +4,7 @@ import com.example.entity.RestBean;
 import com.example.entity.dto.Interact;
 import com.example.entity.dto.TopicType;
 import com.example.entity.vo.request.TopicCreateVO;
+import com.example.entity.vo.request.TopicUpdateVO;
 import com.example.entity.vo.response.*;
 import com.example.service.TopicService;
 import com.example.service.WeatherService;
@@ -72,5 +73,9 @@ public class ForumController {
     @GetMapping("/collects")
     public RestBean<List<TopicPreviewVO>> collects(@RequestAttribute("id") int id){
         return RestBean.success(topicService.listTopicCollects(id));
+    }
+    @PostMapping("/update")
+    public RestBean<Void> updateTopic(@RequestBody @Valid TopicUpdateVO vo,@RequestAttribute("id") int id){
+        return utils.messageHandler(()-> topicService.updateTopic(id,vo));
     }
 }

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dto.*;
 import com.example.entity.vo.request.TopicCreateVO;
+import com.example.entity.vo.request.TopicUpdateVO;
 import com.example.entity.vo.response.TopTopicVO;
 import com.example.entity.vo.response.TopicDetailVO;
 import com.example.entity.vo.response.TopicPreviewVO;
@@ -73,7 +74,19 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
             return "内部错误,请联系管理员!";
         }
     }
-
+    @Override
+    public String updateTopic(int uid, TopicUpdateVO vo) {
+        if(!textLimitCheck(vo.getContent())){
+            return "文章内容过长，发文失败!";
+        }
+        if(!types.contains(vo.getType())) return "文章类型非法";
+        baseMapper.update(null,Wrappers.<Topic>update()
+                .eq("uid",uid)
+                .eq("id",vo.getId()).set("title",vo.getTitle())
+                .set("content",vo.getContent().toString())
+                .set("type",vo.getType()).set("time",new Date()));
+        return null;
+    }
     @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;
@@ -138,6 +151,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
             return vo;
         }).toList();
     }
+
+
 
     private final Map<String,Boolean> state=new HashMap<>();
     ScheduledExecutorService service= Executors.newScheduledThreadPool(2);
