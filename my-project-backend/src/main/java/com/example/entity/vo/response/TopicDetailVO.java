@@ -13,6 +13,7 @@ public class TopicDetailVO {
     Date time;
     User user;
     Interact interact;
+    Long comments;
     @Data
    public static class User{
        Integer id;

@@ -1,6 +1,8 @@
 package com.example.config;
 
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import org.apache.ibatis.plugin.Interceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,9 +19,9 @@ public class WebConfiguration {
         return new RestTemplate();
     }
     @Bean
-    public PaginationInnerInterceptor paginationInnerInterceptor(){
-        PaginationInnerInterceptor paginationInnerInterceptor = new PaginationInnerInterceptor();
-        paginationInnerInterceptor.setMaxLimit(100L);
-        return paginationInnerInterceptor;
+    public MybatisPlusInterceptor paginationInnerInterceptor(){
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+        return interceptor;
     }
 }

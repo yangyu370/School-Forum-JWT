@@ -2,12 +2,15 @@ package com.example.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dto.*;
+import com.example.entity.vo.request.AddCommentVO;
 import com.example.entity.vo.request.TopicCreateVO;
 import com.example.entity.vo.request.TopicUpdateVO;
+import com.example.entity.vo.response.CommentVO;
 import com.example.entity.vo.response.TopTopicVO;
 import com.example.entity.vo.response.TopicDetailVO;
 import com.example.entity.vo.response.TopicPreviewVO;
@@ -25,6 +28,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +43,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     AccountDetailsMapper accountDetailsMapper;
     @Resource
     AccountPrivacyMapper accountPrivacyMapper;
+    @Resource
+    TopicCommentMapper topicCommentMapper;
     @Resource
     StringRedisTemplate stringRedisTemplate;
     private Set<Integer> types;
@@ -55,7 +61,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
 
     @Override
     public String createTopic(int uid, TopicCreateVO vo) {
-        if(!textLimitCheck(vo.getContent())){
+        if(!textLimitCheck(vo.getContent(),20000)){
             return "文章内容过长，发文失败!";
         }
         if(!types.contains(vo.getType())) return "文章类型非法";
@@ -76,7 +82,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     }
     @Override
     public String updateTopic(int uid, TopicUpdateVO vo) {
-        if(!textLimitCheck(vo.getContent())){
+        if(!textLimitCheck(vo.getContent(),20000)){
             return "文章内容过长，发文失败!";
         }
         if(!types.contains(vo.getType())) return "文章类型非法";
@@ -87,6 +93,43 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
                 .set("type",vo.getType()).set("time",new Date()));
         return null;
     }
+    @Override
+    public String createComment(int uid, AddCommentVO vo) {
+        if(!textLimitCheck(JSONObject.parseObject(vo.getContent()),2000)){
+            return "评论内容过长，发表失败!";
+        }
+        String key=Const.FORUM_TOPIC_COMMENT_COUNTER + uid;
+        if(!flowUtils.limitPeriodCounterCheck(key,2,60))
+            return "发表评论频繁,请稍后再试";
+       TopicComment comment=new TopicComment();
+       comment.setUid(uid);
+       BeanUtils.copyProperties(vo,comment);
+       comment.setTime(new Date());
+       topicCommentMapper.insert(comment);
+       return null;
+    }
+
+    @Override
+    public List<CommentVO> comments(int tid, int pageNumber) {
+        Page<TopicComment> page= Page.of(pageNumber, 10);
+        topicCommentMapper.selectPage(page,Wrappers.<TopicComment>query().eq("tid",tid));
+        return page.getRecords().stream().map(dto->{
+            CommentVO vo=new CommentVO();
+            BeanUtils.copyProperties(dto,vo);
+            if(dto.getQuote()>0){
+                JSONObject object=JSONObject.parseObject(topicCommentMapper.selectOne(Wrappers.<TopicComment>query()
+                        .eq("id",dto.getId()).orderByAsc( "time")).getContent());
+                StringBuilder builder=new StringBuilder();
+                this.shortContent(object.getJSONArray("ops"),builder,ignore->{});
+                vo.setQuote(builder.toString());
+            }
+            CommentVO.User user=new CommentVO.User();
+            this.fillUserDetailsByPrivacy(user,dto.getUid());
+            vo.setUser(user);
+            return vo;
+        }).toList();
+    }
+
     @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;
@@ -131,6 +174,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         vo.setInteract(interact);
         TopicDetailVO.User user=new TopicDetailVO.User();
         vo.setUser(this.fillUserDetailsByPrivacy(user,topic.getUid()));
+        vo.setComments(topicCommentMapper.selectCount(Wrappers.<TopicComment>query().eq("tid",tid)));
         return vo;
     }
 
@@ -152,6 +196,18 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         }).toList();
     }
 
+    private void shortContent(JSONArray ops, StringBuilder previewText, Consumer<Object> imageHandler){
+        for(Object op:ops){
+            Object insert=JSONObject.from(op).get("insert");
+            if(insert instanceof String){
+                if(previewText.length()>=300) continue;
+                previewText.append(insert);
+            }else if(insert instanceof Map<?,?> map){
+                Optional.ofNullable(map.get("image"))
+                        .ifPresent(imageHandler);
+            }
+        }
+    }
 
 
     private final Map<String,Boolean> state=new HashMap<>();
@@ -217,13 +273,13 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         vo.setImages(images);
         return vo;
     }
-    private Boolean textLimitCheck(JSONObject object){
+    private Boolean textLimitCheck(JSONObject object,int max){
         if(object==null)
             return false;
         long length=0;
         for (Object op : object.getJSONArray("ops")) {
             length+=JSONObject.from(op).getString("insert").length();
-            if(length>20000) return false;
+            if(length>max) return false;
         }
 
         return true;

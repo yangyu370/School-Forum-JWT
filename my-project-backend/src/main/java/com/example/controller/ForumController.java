@@ -3,6 +3,7 @@ package com.example.controller;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Interact;
 import com.example.entity.dto.TopicType;
+import com.example.entity.vo.request.AddCommentVO;
 import com.example.entity.vo.request.TopicCreateVO;
 import com.example.entity.vo.request.TopicUpdateVO;
 import com.example.entity.vo.response.*;
@@ -74,8 +75,17 @@ public class ForumController {
     public RestBean<List<TopicPreviewVO>> collects(@RequestAttribute("id") int id){
         return RestBean.success(topicService.listTopicCollects(id));
     }
-    @PostMapping("/update")
+    @PostMapping("/update-topic")
     public RestBean<Void> updateTopic(@RequestBody @Valid TopicUpdateVO vo,@RequestAttribute("id") int id){
         return utils.messageHandler(()-> topicService.updateTopic(id,vo));
+    }
+    @PostMapping("/add-comment")
+    public RestBean<Void> addComment(@Valid @RequestBody AddCommentVO vo, @RequestAttribute("id") int id){
+        return utils.messageHandler(()-> topicService.createComment(id,vo));
+    }
+    @GetMapping("/comments")
+    public RestBean<List<CommentVO>> comments(@RequestParam @Min(0) int tid,
+                                              @RequestParam @Min(0) int page ){
+        return RestBean.success(topicService.comments(tid,page+1));
     }
 }
