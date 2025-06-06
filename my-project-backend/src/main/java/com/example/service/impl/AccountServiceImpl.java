@@ -3,8 +3,12 @@ package com.example.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dto.Account;
+import com.example.entity.dto.AccountDetails;
+import com.example.entity.dto.AccountPrivacy;
 import com.example.entity.vo.request.*;
+import com.example.mapper.AccountDetailsMapper;
 import com.example.mapper.AccountMapper;
+import com.example.mapper.AccountPrivacyMapper;
 import com.example.service.AccountService;
 import com.example.utils.Const;
 import com.example.utils.FlowUtils;
@@ -34,6 +38,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     AmqpTemplate amqpTemplate;
     @Resource
     StringRedisTemplate stringRedisTemplate;
+    @Resource
+    AccountPrivacyMapper accountPrivacyMapper;
+    @Resource
+    AccountDetailsMapper accountDetailsMapper;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
@@ -99,6 +107,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         Account account=new Account(null,username,password,email,"user",null,new Date());
         if (this.save(account)) {
             stringRedisTemplate.delete(Const.VERIFY_EMAIL_DATA+email);
+            accountPrivacyMapper.insert(new AccountPrivacy(account.getId()));
+            AccountDetails details=new AccountDetails();
+            details.setId(account.getId());
+            accountDetailsMapper.insert(details);
             return null;
         }else{
             return "内部错误，请联系管理员";

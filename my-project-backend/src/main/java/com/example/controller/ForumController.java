@@ -31,6 +31,7 @@ public class ForumController {
     TopicService topicService;
     @Resource
     ControllerUtils utils;
+
     @GetMapping("/weather")
     public RestBean<WeatherVO> weather(double longitude, double latitude) {
         WeatherVO vo = weatherService.fetchWeather(longitude, latitude);
@@ -47,45 +48,61 @@ public class ForumController {
         }).toList();
         return RestBean.success(vos);
     }
+
     @PostMapping("/create-topic")
-    public RestBean<Void> createTopic(@RequestBody @Valid TopicCreateVO vo,@RequestAttribute("id") int id) {
-        return utils.messageHandler(()-> topicService.createTopic(id,vo));
+    public RestBean<Void> createTopic(@RequestBody @Valid TopicCreateVO vo, @RequestAttribute("id") int id) {
+        return utils.messageHandler(() -> topicService.createTopic(id, vo));
     }
+
     @GetMapping("/list-topic")
-    public RestBean<List<TopicPreviewVO>> listTopic(@RequestParam @Min(0) @Max(100)int page,
-                                                    @RequestParam @Min(0) int type){
-        return RestBean.success(topicService.listTopicByPage(page+1,type));
+    public RestBean<List<TopicPreviewVO>> listTopic(@RequestParam @Min(0) @Max(100) int page,
+                                                    @RequestParam @Min(0) int type) {
+        return RestBean.success(topicService.listTopicByPage(page + 1, type));
     }
+
     @GetMapping("/top-topic")
-    public RestBean<List<TopTopicVO>> topTopic(){
-         return RestBean.success(topicService.listTopTopics());
+    public RestBean<List<TopTopicVO>> topTopic() {
+        return RestBean.success(topicService.listTopTopics());
     }
+
     @GetMapping("/topic")
-    public RestBean<TopicDetailVO> Topic(@RequestParam @Min(0)int tid,@RequestAttribute("id") int id){
-            return RestBean.success(topicService. getTopicDetail(tid,id));
+    public RestBean<TopicDetailVO> Topic(@RequestParam @Min(0) int tid, @RequestAttribute("id") int id) {
+        return RestBean.success(topicService.getTopicDetail(tid, id));
     }
+
     @GetMapping("/interact")
     public RestBean<Void> interact(@RequestParam @Min(0) int tid
-                                , @RequestParam @Pattern(regexp="(like|collect)")String type,
-                                   @RequestParam boolean state,@RequestAttribute("id") int id ) {
-          topicService.interact(new Interact(tid,id,new Date(),type),state);
-          return RestBean.success();
+            , @RequestParam @Pattern(regexp = "(like|collect)") String type,
+                                   @RequestParam boolean state, @RequestAttribute("id") int id) {
+        topicService.interact(new Interact(tid, id, new Date(), type), state);
+        return RestBean.success();
     }
+
     @GetMapping("/collects")
-    public RestBean<List<TopicPreviewVO>> collects(@RequestAttribute("id") int id){
+    public RestBean<List<TopicPreviewVO>> collects(@RequestAttribute("id") int id) {
         return RestBean.success(topicService.listTopicCollects(id));
     }
+
     @PostMapping("/update-topic")
-    public RestBean<Void> updateTopic(@RequestBody @Valid TopicUpdateVO vo,@RequestAttribute("id") int id){
-        return utils.messageHandler(()-> topicService.updateTopic(id,vo));
+    public RestBean<Void> updateTopic(@RequestBody @Valid TopicUpdateVO vo, @RequestAttribute("id") int id) {
+        return utils.messageHandler(() -> topicService.updateTopic(id, vo));
     }
+
     @PostMapping("/add-comment")
-    public RestBean<Void> addComment(@Valid @RequestBody AddCommentVO vo, @RequestAttribute("id") int id){
-        return utils.messageHandler(()-> topicService.createComment(id,vo));
+    public RestBean<Void> addComment(@Valid @RequestBody AddCommentVO vo, @RequestAttribute("id") int id) {
+        return utils.messageHandler(() -> topicService.createComment(id, vo));
     }
+
     @GetMapping("/comments")
     public RestBean<List<CommentVO>> comments(@RequestParam @Min(0) int tid,
-                                              @RequestParam @Min(0) int page ){
-        return RestBean.success(topicService.comments(tid,page+1));
+                                              @RequestParam @Min(0) int page) {
+        return RestBean.success(topicService.comments(tid, page + 1));
+    }
+
+    @GetMapping("/delete-comment")
+    public RestBean<Void>  DeleteComment(@RequestParam  @Min(0) int id,
+                                         @RequestAttribute("id") int uid){
+        topicService.deleteComment(id,uid);
+        return RestBean.success();
     }
 }

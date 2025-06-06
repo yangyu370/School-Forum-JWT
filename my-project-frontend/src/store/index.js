@@ -29,8 +29,13 @@ export  const useStore=defineStore('general',{
                     return type
                 }
             }
-            // 返回一个默认对象，避免undefined错误
             return {name: '未知', color: '#999999'}
+        },
+        avatarUserUrl(avatar) {
+            if(avatar)
+                return `${axios.defaults.baseURL}/images${avatar}`
+            else
+                return 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
         }
     }
 })

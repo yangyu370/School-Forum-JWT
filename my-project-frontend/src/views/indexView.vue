@@ -1,5 +1,5 @@
 <script setup>
-import {logout} from "@/net/index.js";
+import {logout, post} from "@/net/index.js";
 import router from "@/router/index.js";
 import {get} from "@/net/index.js"
 import {useStore} from "@/store/index.js";
@@ -12,13 +12,28 @@ import {
   Location, Lock, Message, Monitor,
   Notification, Operation, Position, Moon,
   School, Search,
-  Umbrella, User, Sunny
+  Umbrella, User, Sunny, Check
 } from '@element-plus/icons-vue'
+import LightCard from "@/components/LightCard.vue";
 function userLogout(){
    logout(()=>router.push('/'))
 }
 function goUserSetting(){
    router.push('/index/user-setting')
+}
+const notification=ref([])
+const loadNotification= ()=>get('/api/notification/list',data=>{notification.value=data})
+loadNotification()
+function confirmNotification(id,url){
+  get(`api/notification/delete?id=${id}`,()=>{
+    loadNotification()
+    window.open(url)
+  })
+}
+function deleteAllNotification(){
+  get('api/notification/delete-all',()=>{
+    loadNotification()
+  })
 }
 const store=useStore()
 const loading=ref(true)
@@ -73,6 +88,32 @@ const updateDarkClass = () => {
              </el-input>
           </div>
           <div class="user-info">
+             <el-popover placement="bottom" :width="350" trigger="click">
+                 <template #reference>
+                    <el-badge style="margin-right: 15px" is-dot :hidden="!notification.length ">
+                       <div class="notification">
+                         <el-icon><Bell/></el-icon>
+                         <div style="font-size: 10px">消息提醒 </div>
+                       </div>
+                    </el-badge>
+                 </template>
+                 <el-empty :image-size="80" description="暂无未读消息" v-if="!notification.length"/>
+                 <el-scrollbar :max-height="500" v-else>
+                    <light-card v-for="item in notification" class="notification-item" @click="confirmNotification(item.id,item.url)">
+                      <div>
+                        <el-tag :type="item.type">消息</el-tag>&nbsp;
+                        <span style="font-weight: bold">{{item.title}}</span>
+                      </div>
+                      <el-divider style="margin:7px 0 3px 0"/>
+                      <div style="font-size: 13px;opacity: 0.8 ;color: grey">
+                        {{item.content}}
+                      </div>
+                    </light-card>
+                    <div>
+                       <el-button size="small" type="info" :icon="Check" @click=" deleteAllNotification" style="width: 100%">清除全部未读消息</el-button>
+                    </div>
+                 </el-scrollbar>
+             </el-popover>
               <div class="flex items-center p-4">
                 <el-switch
                     v-model="isDark"
@@ -221,6 +262,24 @@ const updateDarkClass = () => {
     </div>
 </template>
 <style lang="less" scoped>
+.notification-item{
+  transition: .3s;
+  &:hover{
+    cursor: pointer;
+    scale: 1.01;
+  }
+  margin: 10px 0;
+}
+ .notification{
+   font-size: 22px;
+   line-height: 14px;
+   text-align: center;
+   transition: color .3s ;
+   &:hover{
+     cursor: pointer;
+     color: grey;
+   }
+ }
  .main-content{
    height: 100vh;
    width: 100vw;

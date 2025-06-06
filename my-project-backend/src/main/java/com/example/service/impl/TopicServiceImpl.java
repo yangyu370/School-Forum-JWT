@@ -15,6 +15,7 @@ import com.example.entity.vo.response.TopTopicVO;
 import com.example.entity.vo.response.TopicDetailVO;
 import com.example.entity.vo.response.TopicPreviewVO;
 import com.example.mapper.*;
+import com.example.service.NotificationService;
 import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
 import com.example.utils.Const;
@@ -50,6 +51,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     private Set<Integer> types;
     @Resource
     CacheUtils cacheUtils;
+    @Resource
+    NotificationService notificationService;
     @PostConstruct
     public void initTypes() {
         this.types = this.listTypes().stream().map(TopicType::getId).collect(Collectors.toSet());
@@ -106,6 +109,17 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
        BeanUtils.copyProperties(vo,comment);
        comment.setTime(new Date());
        topicCommentMapper.insert(comment);
+       Topic topic=baseMapper.selectById(vo.getTid());
+       Account account=accountMapper.selectById(uid);
+       if(vo.getQuote()>0){
+           TopicComment quoteComment=topicCommentMapper.selectById(vo.getQuote());
+          if(!Objects.equals(account.getId(),quoteComment.getUid())){
+              notificationService.addNotification(account.getId(),"你有新的评论回复",account.getUsername()+"回复了你的评论,快去看看吧","success","/index/topic-detail/"+quoteComment.getTid());
+
+          }
+       }else if(!Objects.equals(account.getId(),topic.getUid())){
+           notificationService.addNotification(topic.getUid(),"你有新的帖子回复",account.getUsername()+"回复了你发表的主题"+topic.getTitle()+"，快去看看吧","success","/index/topic-detail/"+topic.getId());
+       }
        return null;
     }
 
@@ -117,11 +131,17 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
             CommentVO vo=new CommentVO();
             BeanUtils.copyProperties(dto,vo);
             if(dto.getQuote()>0){
-                JSONObject object=JSONObject.parseObject(topicCommentMapper.selectOne(Wrappers.<TopicComment>query()
-                        .eq("id",dto.getId()).orderByAsc( "time")).getContent());
-                StringBuilder builder=new StringBuilder();
-                this.shortContent(object.getJSONArray("ops"),builder,ignore->{});
-                vo.setQuote(builder.toString());
+              TopicComment comment= topicCommentMapper.selectOne(Wrappers.<TopicComment>query()
+                      .eq("id",dto.getQuote()).orderByAsc( "time"));
+                if(comment!=null){
+                    JSONObject object=JSONObject.parseObject(comment.getContent());
+                    StringBuilder builder=new StringBuilder();
+                    this.shortContent(object.getJSONArray("ops"),builder,ignore->{});
+                    vo.setQuote(builder.toString());
+                }else{
+                    vo.setQuote("评论已删除");
+                }
+
             }
             CommentVO.User user=new CommentVO.User();
             this.fillUserDetailsByPrivacy(user,dto.getUid());
@@ -129,7 +149,10 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
             return vo;
         }).toList();
     }
-
+    @Override
+    public void deleteComment(int id, int uid) {
+        topicCommentMapper.delete(Wrappers.<TopicComment>query().eq("id", id).eq("uid", uid));
+    }
     @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;

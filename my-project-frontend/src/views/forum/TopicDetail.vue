@@ -4,7 +4,18 @@ import router from "@/router";
 import {get,post} from "@/net"
 import axios from "axios";
 import {reactive} from "vue";
-import {ArrowLeft, BellFilled, CircleCheck, EditPen, Female, Male, Plus, Star} from "@element-plus/icons-vue";
+import {
+  ArrowLeft,
+  BellFilled,
+  ChatSquare,
+  CircleCheck,
+  Delete,
+  EditPen,
+  Female,
+  Male,
+  Plus,
+  Star
+} from "@element-plus/icons-vue";
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
 import {computed} from "vue";
 import Card from "@/components/Card.vue";
@@ -76,6 +87,13 @@ function onCommentAdd(){
   comment.show=false
   loadComments(1)
 }
+function deleteComment(id) {
+   get(`api/forum/delete-comment?id=${id}`,()=>{
+       ElMessage.success("删除成功")
+       loadComments(topic.page)
+   })
+}
+
 </script>
 
 <template>
@@ -94,7 +112,7 @@ function onCommentAdd(){
      </div>
     <div class="topic-main">
        <div class="topic-main-left">
-            <el-avatar :src="axios.defaults.baseURL+'/images'+topic.data.user.avatar" :size="60"/>
+            <el-avatar :src="store.avatarUserUrl(topic.data.user.avatar)" :size="60"/>
             <div style="display: flex;margin-left: 65px;align-items: center;">
                 <div style="font-size:18px;font-weight: bold;">{{topic.data.user.username}}</div>
               <div style="margin-left:5px;transform: translateY(3px)" >
@@ -144,7 +162,7 @@ function onCommentAdd(){
         <div v-if="topic.comments">
           <div class="topic-main" style="margin-top: 10px" v-for="item in topic.comments">
             <div class="topic-main-left">
-              <el-avatar :src="axios.defaults.baseURL+'/images'+item.user.avatar" :size="60"/>
+              <el-avatar :src="store.avatarUserUrl(item.user.avatar)" :size="60"/>
               <div style="display: flex;margin-left: 65px;align-items: center;">
                 <div style="font-size:18px;font-weight: bold;">{{item.user.username}}</div>
                 <div style="margin-left:5px;transform: translateY(3px)" >
@@ -170,13 +188,17 @@ function onCommentAdd(){
               <div style="font-size: 13px;color: grey;margin-top:10px">
                 评论 时间:{{new Date(item.time).toLocaleString()}}
               </div>
-              <div class="topic-content" v-html="ConvertToHtml(item.content)"></div>
-              <div style="text-align: right;margin-top: 30px">
-                <interact-button name="点赞" check-name="已点赞" color="pink" @check="interact('like','点赞')"
-                                 v-model:checked="topic.like">
-                  <el-icon><CircleCheck/></el-icon>
-                </interact-button>
+              <div v-if="item.quote" class="comment-quote">
+                回复:{{item.quote}}
               </div>
+              <div class="topic-content" v-html="ConvertToHtml(item.content)"></div>
+              <div style="text-align: right">
+                <el-link :icon="ChatSquare" @click="comment.show = true;comment.quote = item"
+                         type="info">&nbsp;回复评论</el-link>
+                <el-link :icon="Delete" type="danger" v-if="item.user.id === store.user.id"
+                         style="margin-left: 20px" @click="deleteComment(item.id)">&nbsp;删除评论</el-link>
+              </div>
+
             </div>
           </div>
            <div style="width: fit-content;margin: 20px auto">
@@ -190,13 +212,21 @@ function onCommentAdd(){
     <topic-editor :show="edit" @close="edit=false" v-if="topic.data&&store.forum.types "
     :default-type="topic.data.type" :default-text="topic.data.content" :default-title="topic.data.title" submit-button="更新帖子内容 " :submit="updateTopic" />
     <topic-comment-editor :show="comment.show" @close="comment.show=false" :tid="tid" :quote="comment.quote" @comment="onCommentAdd"/>
-    <div class="add-comment" @click="comment.show=true" >
+    <div class="add-comment" @click="comment.show=true;comment.quote=null">
         <el-icon style="margin-top:17px"><Plus/></el-icon>
     </div>
   </div>
 </template>
 
 <style scoped>
+.comment-quote {
+  font-size: 13px;
+  color: grey;
+  background-color: rgba(94, 94, 94, 0.1);
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 5px;
+}
 .add-comment{
   position: fixed;
   bottom: 60px;
