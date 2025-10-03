@@ -19,12 +19,12 @@ import { get } from "@/net/index.js";
 import { ElMessage } from "element-plus";
 import TopicEditor from "@/components/TopicEditor.vue";
 import {useStore} from "@/store/index.js";
-import axios from "axios";
 import ColorDot from "@/components/ColorDot.vue";
 import {watch} from "vue";
 import router from "@/router/index.js";
 import TopicTag from "@/components/TopicTag.vue";
 import TopicCollectList from "@/components/TopicCollectList.vue";
+import {apiForumTopicList, apiForumTopTopics, apiForumWeather} from "@/net/api/forum.js";
 const store = useStore();
 const topics=reactive({
   list:[],
@@ -42,25 +42,21 @@ const today = computed(() => {
   const date = new Date()
   return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日`
 })
-get('api/forum/top-topic',data=>topics.top=data)
 function updateList(){
-  if(topics.end) return;
-  get(`api/forum/list-topic?page=${topics.page}&type=${topics.type} `, data=> {
-    if(data && data.length > 0){
-      data.forEach(d => { topics.list.push(d) });
-      topics.page++;
+  if(topics.end) return
+  apiForumTopicList(topics.page, topics.type, data => {
+    if(data) {
+      data.forEach(d => topics.list.push(d))
+      topics.page++
     }
-    if(!data || data.length < 10){
-      topics.end = true;
-    }
-
+    if(!data || data.length < 10)
+      topics.end = true
   })
 }
 updateList();
 function onTopicCreate(){
   editor.value=false;
   resetList()
-
 }
 function resetList(){
   topics.page=0;
@@ -87,59 +83,29 @@ onMounted(async () => {
 })
 
 // 获取天气信息
-const getWeather = (longitude, latitude) => {
-  get(`/api/forum/weather?longitude=${longitude}&latitude=${latitude}`, 
-    data => {
-      Object.assign(weather, data)
-      weather.success = true
-    },
-    error => {
-      console.error('获取天气失败:', error)
-      ElMessage.warning("位置信息获取失败，使用默认位置")
-      // 使用默认位置（北京）
-      getWeather(116.41, 39.92)
-    }
-  )
-}
-
-// 获取地理位置
-onMounted(() => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { longitude, latitude } = position.coords
-        getWeather(longitude, latitude)
-      },
-      (error) => {
-        switch (error.code) {
-            case error.PERMISSION_DENIED:
-                console.error("用户拒绝了地理位置请求。");
-                // 在这里添加用户拒绝地理位置访问时的处理逻辑
-                break;
-            case error.POSITION_UNAVAILABLE:
-                console.error("地理位置信息不可用。");
-                break;
-            case error.TIMEOUT:
-                console.error("请求地理位置超时。");
-                break;
-            default:
-                console.log("获取地理位置时发生未知错误。");
-                break;
-        }
-      },
-      {
-        timeout: 30000,
-        enableHighAccuracy: true
-      }
-    )
-  } else {
-    ElMessage.warning("您的浏览器不支持地理位置功能，使用默认位置")
-    // 使用默认位置（北京）
-    getWeather(116.41, 39.92)
-  }
+navigator.geolocation.getCurrentPosition(position => {
+  const longitude = position.coords.longitude
+  const latitude = position.coords.latitude
+  apiForumWeather(longitude, latitude, data => {
+    Object.assign(weather, data)
+    weather.success = true
+  })
+}, error => {
+  console.info(error)
+  ElMessage.warning('位置信息获取超时，请检测网络设置')
+  apiForumWeather(116.40529, 39.90499, data => {
+    Object.assign(weather, data)
+    weather.success = true
+  })
+}, {
+  timeout: 3000,
+  enableHighAccuracy: true
 })
-const editor=ref(false);
+onMounted(() => {
+  apiForumTopTopics(data => topics.top = data)
+})
 
+const editor=ref(false);
 const collects=ref(false);
 </script>
 

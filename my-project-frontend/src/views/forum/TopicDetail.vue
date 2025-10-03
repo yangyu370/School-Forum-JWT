@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import {useRoute} from "vue-router";
 import router from "@/router";
-import {get,post} from "@/net"
-import axios from "axios";
+import {
+  apiForumCommentDelete,
+  apiForumComments,
+  apiForumInteract,
+  apiForumTopic,
+  apiForumUpdateTopic
+} from "@/net/api/forum";
+
 import {reactive} from "vue";
 import {
   ArrowLeft,
@@ -17,7 +23,6 @@ import {
   Star
 } from "@element-plus/icons-vue";
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
-import {computed} from "vue";
 import Card from "@/components/Card.vue";
 import TopicTag from "@/components/TopicTag.vue";
 import InteractButton from "@/components/InteractButton.vue";
@@ -42,12 +47,12 @@ const  comment=reactive({
   text:'',
   quote: -1
 })
-const init=( )=>get(`api/forum/topic?tid=${tid}`,data=>{
-  topic.data=data
-  topic.like=data.interact.like
-  topic.collect=data.interact.collect
-  loadComments(Math.floor(++topic.data.comments/10)+1)
-});
+const init = () => apiForumTopic(tid, data => {
+  topic.data = data
+  topic.like = data.interact.like
+  topic.collect = data.interact.collect
+  loadComments(1)
+})
 init()
 function ConvertToHtml(content){
   if (!topic.data || !topic.data.content) return ''
@@ -55,45 +60,36 @@ function ConvertToHtml(content){
   const converter = new QuillDeltaToHtmlConverter(ops, {inlineStyles: true });
   return converter.convert();
 }
-function interact(type,message){
-  get(`api/forum/interact?tid=${tid}&type=${type}&state=${!topic[type]}`,()=>{
-    topic[type] = !topic[type];
-    if(topic[type])
-      ElMessage.success(`${message}成功`)
-    else
-      ElMessage.error(`已取消${message}`)
-  })
+function interact(type, message) {
+  apiForumInteract(tid, type, topic, message)
 }
-function updateTopic(editor){
-  post('api/forum/update-topic', {
-     id:tid,
-    type:editor.type.id,
-    title:editor.title,
-    content:editor.text,
-  },( )=>{
-     ElMessage.success("帖子内容更新成功")
-     edit.value = false
+function updateTopic(editor) {
+  apiForumUpdateTopic({
+    id: tid,
+    type: editor.type.id,
+    title: editor.title,
+    content: editor.text
+  }, () => {
+    ElMessage.success('帖子内容更新成功！')
+    edit.value = false
     init()
   })
 }
-function loadComments(page){
+function loadComments(page) {
   topic.comments = null
   topic.page = page
- get(`api/forum/comments?tid=${tid}&page=${page-1}`,data=>{
-   topic.comments = data
- })
+  apiForumComments(tid, page - 1, data => topic.comments = data)
 }
 function onCommentAdd(){
   comment.show=false
   loadComments(1)
 }
 function deleteComment(id) {
-   get(`api/forum/delete-comment?id=${id}`,()=>{
-       ElMessage.success("删除成功")
-       loadComments(topic.page)
-   })
+  apiForumCommentDelete(id, () => {
+    ElMessage.success('删除评论成功！')
+    loadComments(topic.page)
+  })
 }
-
 </script>
 
 <template>
@@ -211,7 +207,8 @@ function deleteComment(id) {
     </transition>
     <topic-editor :show="edit" @close="edit=false" v-if="topic.data&&store.forum.types "
     :default-type="topic.data.type" :default-text="topic.data.content" :default-title="topic.data.title" submit-button="更新帖子内容 " :submit="updateTopic" />
-    <topic-comment-editor :show="comment.show" @close="comment.show=false" :tid="tid" :quote="comment.quote" @comment="onCommentAdd"/>
+    <topic-comment-editor :show="comment.show" @close="comment.show = false" :tid="tid"
+                          :quote="comment.quote" @comment="onCommentAdd"/>
     <div class="add-comment" @click="comment.show=true;comment.quote=null">
         <el-icon style="margin-top:17px"><Plus/></el-icon>
     </div>

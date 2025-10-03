@@ -52,11 +52,10 @@ function internalGet(url, headers, success, failure, error = defaultError) {
         }
     }).catch(err => error(err))
 }
-function accessHeader(){
-    const token = takeAccessToken().token
-    return token ?{
-        'Authorization': `Bearer ${takeAccessToken().token}`
-    }:{}
+const accessHeader = () => {
+    return {
+        'Authorization': `Bearer ${takeAccessToken()?.token}`
+    }
 }
 function get(url,success,failure=defaultFailure){
    internalGet(url,accessHeader(),success,failure)

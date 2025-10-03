@@ -2,7 +2,7 @@
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import {Delta, QuillEditor} from "@vueup/vue-quill";
 import {ref} from "vue";
-import {post} from "@/net"
+import { apiForumCommentSubmit } from '@/net/api/forum';
 import {ElMessage} from "element-plus";
 const props = defineProps({
    show:Boolean,
@@ -12,17 +12,17 @@ const props = defineProps({
 const emit=defineEmits(['close','comment'])
 const init = () => content.value = new Delta()
 const content=ref()
-function  submitComment(){
-  if(deltaToText(content.value).length>2000){
+function submitComment() {
+  if (deltaToText(content.value).length > 2000) {
     ElMessage.warning('评论字数已经超出最大限制，请缩减评论内容！')
     return
   }
-  post( '/api/forum/add-comment',{
-    tid:props.tid,
+  apiForumCommentSubmit({
+    tid: props.tid,
     quote: props.quote ? props.quote.id : -1,
-    content:JSON.stringify(content.value)
-  },()=>{
-    ElMessage.success("发表评论成功")
+    content: JSON.stringify(content.value)
+  }, () => {
+    ElMessage.success('发表评论成功')
     emit('comment')
   })
 }

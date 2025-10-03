@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {get} from '@/net'
+import {apiForumCollect,apiForumCollectDelete} from "@/net/api/forum"
 import {ref} from "vue";
 import router from "@/router"
 import LightCard from "@/components/LightCard.vue";
@@ -12,13 +12,14 @@ defineProps(
 )
 const emit=defineEmits(['close'])
 const list=ref([])
-function init(){
-  get('api/forum/collects',data=>list.value=data)
+function init() {
+  apiForumCollect(data => list.value = data)
 }
-function deleteCollect(index,tid){
-  get(`api/forum/interact?tid=${tid}&type=collect&state=false`,()=>{
-    ElMessage.success("已取消收藏")
-    list.value.splice(index,1)
+
+function deleteCollect(index, tid) {
+  apiForumCollectDelete(tid, () => {
+    ElMessage.success('已取消收藏！')
+    list.value.splice(index, 1)
   })
 }
 </script>

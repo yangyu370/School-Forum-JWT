@@ -8,9 +8,11 @@ import {get} from "@/net/index.js"
 import {ref} from "vue";
 import {computed} from "vue";
 import {post} from "@/net/index.js";
+import apis from "@vueup/vue-quill/dist/vue-quill.global.js";
+import {apiAuthAskCode, apiAuthRegister} from "@/net/api/user.js";
 const coldTime=ref(0)
 const formRef=ref()
-const form=reactive(
+const  form=reactive(
     {
       username:'',
       password:'',
@@ -56,30 +58,25 @@ const rule={
      {required:true,message:'请输入验证码！',trigger:'blur'}
    ]
 }
-function askCode(){
-   if(isEmailValidate){
-     coldTime.value=60
-   get(`/api/auth/ask-code?email=${form.email}&type=register`,()=>{
-     ElMessage.success("验证码已发送到您的邮箱,请注意查收!")
-     setInterval(()=>coldTime.value--,1000)
-   },()=>{coldTime.value=0})
-   }
-   else ElMessage.error("请输入正确的电子邮件格式！")
-}
+const validateEmail = () => apiAuthAskCode(form.email, coldTime)
 const isEmailValidate=computed(()=>{
  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)
 })
-function register(){
-  formRef.value.validate((valid)=>{
-    if(valid){
-      post("api/auth/register",{...form},()=>{
-        ElMessage.success("注册成功！欢迎加入,请登录!")
-        router.push('/')
+const register = () => {
+  formRef.value.validate((isValid) => {
+    if(isValid) {
+      apiAuthRegister({
+        username: form.username,
+        password: form.password,
+        email: form.email,
+        code: form.code
       })
-    }else
-      ElMessage.warning("表单填写有误请重新填写")
+    } else {
+      ElMessage.warning('请完整填写注册表单内容！')
+    }
   })
 }
+
 </script>
 
 <template>
@@ -128,7 +125,7 @@ function register(){
                </el-input>
             </el-col>
             <el-col :span="5">
-              <el-button type="primary" @click="askCode"
+              <el-button type="primary" @click="validateEmail"
                          :disabled="!isEmailValidate || coldTime > 0">
                 {{coldTime > 0 ? '请稍后 ' + coldTime + ' 秒' : '获取验证码'}}
               </el-button>

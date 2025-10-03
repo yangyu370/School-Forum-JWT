@@ -1,8 +1,6 @@
 <script setup>
-import {get} from "@/net/index.js"
 import { ref,reactive,onMounted,inject} from 'vue';
 import {
-  Back,
   Bell,
   ChatDotSquare, Collection, DataLine,
   Document, Files,
@@ -12,6 +10,7 @@ import {
 } from '@element-plus/icons-vue'
 import LightCard from "@/components/LightCard.vue";
 import UserInfo from "@/components/UserInfo.vue";
+import {apiNotificationDelete, apiNotificationDeleteAll, apiNotificationList} from "@/net/api/user.js";
 const userMenu = [
   {
     title: '校园论坛', icon: Location, sub: [
@@ -36,21 +35,18 @@ const userMenu = [
     ]
   }
 ]
-
-
 const notification=ref([])
-const loadNotification= ()=>get('/api/notification/list',data=>{notification.value=data})
+const loadNotification =
+    () => apiNotificationList(data => notification.value = data)
 loadNotification()
-function confirmNotification(id,url){
-  get(`api/notification/delete?id=${id}`,()=>{
+function confirmNotification(id, url) {
+  apiNotificationDelete(id, () => {
     loadNotification()
     window.open(url)
   })
 }
-function deleteAllNotification(){
-  get('api/notification/delete-all',()=>{
-    loadNotification()
-  })
+function deleteAllNotification() {
+  apiNotificationDeleteAll(loadNotification)
 }
 const loading=inject("userLoading")
 const searchInput=reactive({

@@ -1,9 +1,7 @@
 <script setup>
 import {ref, reactive, computed} from "vue";
 import {EditPen, Lock, Message} from "@element-plus/icons-vue";
-import {get, post} from "@/net/index.js";
-import {ElMessage} from "element-plus";
-import router from "@/router/index.js";
+import {apiAuthAskCode, apiAuthResetPassword, apiAuthRestConfirm} from "@/net/api/user.js";
 const active=ref(0)
 const coldTime=ref(0)
 const formRef=ref()
@@ -13,34 +11,25 @@ const form=reactive({
   password:'',
   password_repeat:''
 })
-function askCode(){
-  if(isEmailValidate){
-    coldTime.value=60
-    get(`/api/auth/ask-code?email=${form.email}&type=reset`,()=>{
-      ElMessage.success("验证码已发送到您的邮箱,请注意查收!")
-      setInterval(()=>coldTime.value--,1000)
-    },()=>{coldTime.value=0})
-  }
-  else ElMessage.error("请输入正确的电子邮件格式！")
-}
-function confirmReset(){
-  formRef.value.validate((valid)=>{
-    if(valid){
-         post("/api/auth/reset-confirm",{
-           email:form.email,
-           code:form.code
-         },()=>active.value++)
+const validateEmail = () => apiAuthAskCode(form.email, coldTime, 'reset')
+const confirmReset = () => {
+  formRef.value.validate((isValid) => {
+    if(isValid) {
+      apiAuthRestConfirm({
+        email: form.email,
+        code: form.code
+      }, active)
     }
-  }
-  )
+  })
 }
-function doReset(){
-  formRef.value.validate((valid)=>{
-    if(valid){
-       post("api/auth/reset-password",{...form},()=>{
-          ElMessage.success("密码重置成功请重新登录！")
-          router.push("/")
-       })
+const doReset = () => {
+  formRef.value.validate((isValid) => {
+    if(isValid) {
+      apiAuthResetPassword({
+        email: form.email,
+        code: form.code,
+        password: form.password
+      })
     }
   })
 }
@@ -106,7 +95,7 @@ const isEmailValidate=computed(()=>{
                     </el-input>
                   </el-col>
                   <el-col :span="5">
-                    <el-button type="primary" @click="askCode"
+                    <el-button type="primary" @click="validateEmail"
                                :disabled="!isEmailValidate || coldTime > 0">
                       {{coldTime > 0 ? '请稍后 ' + coldTime + ' 秒' : '获取验证码'}}
                     </el-button>
