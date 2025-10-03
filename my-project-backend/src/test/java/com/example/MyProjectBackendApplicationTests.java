@@ -24,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.annotation.Documented;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -45,7 +46,6 @@ class MyProjectBackendApplicationTests {
     @Qualifier("topicMapper")
     @Autowired
     private BaseMapper<Topic> baseMapper;
-
     @Test
     void contextLoads() {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();

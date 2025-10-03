@@ -1,26 +1,43 @@
 <script setup>
-import {logout, post} from "@/net/index.js";
-import router from "@/router/index.js";
 import {get} from "@/net/index.js"
-import {useStore} from "@/store/index.js";
-import { ref,reactive,onMounted} from 'vue';
+import { ref,reactive,onMounted,inject} from 'vue';
 import {
   Back,
   Bell,
   ChatDotSquare, Collection, DataLine,
   Document, Files,
-  Location, Lock, Message, Monitor,
-  Notification, Operation, Position, Moon,
-  School, Search,
-  Umbrella, User, Sunny, Check
+  Location, Lock, Monitor,
+  Notification, Operation, Position, School, Search,
+  Umbrella, User, Check
 } from '@element-plus/icons-vue'
 import LightCard from "@/components/LightCard.vue";
-function userLogout(){
-   logout(()=>router.push('/'))
-}
-function goUserSetting(){
-   router.push('/index/user-setting')
-}
+import UserInfo from "@/components/UserInfo.vue";
+const userMenu = [
+  {
+    title: '校园论坛', icon: Location, sub: [
+      { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
+      { title: '失物招领', icon: Bell },
+      { title: '校园活动', icon: Notification },
+      { title: '表白墙', icon: Umbrella },
+      { title: '海文考研', icon: School }
+    ]
+  }, {
+    title: '探索与发现', icon: Position, sub: [
+      { title: '成绩查询', icon: Document },
+      { title: '班级课程表', icon: Files },
+      { title: '教务通知', icon: Monitor },
+      { title: '在线图书馆', icon: Collection },
+      { title: '预约教室', icon: DataLine }
+    ]
+  }, {
+    title: '个人设置', icon: Operation, sub: [
+      { title: '个人信息设置', icon: User, index: '/index/user-setting' },
+      { title: '账号安全设置', icon: Lock, index: '/index/privacy-setting' }
+    ]
+  }
+]
+
+
 const notification=ref([])
 const loadNotification= ()=>get('/api/notification/list',data=>{notification.value=data})
 loadNotification()
@@ -35,27 +52,16 @@ function deleteAllNotification(){
     loadNotification()
   })
 }
-const store=useStore()
-const loading=ref(true)
+const loading=inject("userLoading")
 const searchInput=reactive({
   type:"1",
   text: ''
-})
-get("api/user/info",(data)=>{
-  store.user=data
-  loading.value=false;
 })
 const isDark = ref(false)
 onMounted(() => {
   isDark.value = localStorage.getItem('dark-mode') === 'true'
   updateDarkClass()
 })
-
-const toggleDarkMode = () => {
-  localStorage.setItem('dark-mode', isDark.value)
-  updateDarkClass()
-}
-
 const updateDarkClass = () => {
   const html = document.documentElement
   if (isDark.value) {
@@ -64,9 +70,7 @@ const updateDarkClass = () => {
     html.classList.remove('dark')
   }
 }
-
 </script>
-
 <template>
     <div  class="main-content" v-loading="loading" element-loading-text="正在进入,请稍后..">
       <el-container style="height: 100%" v-if="!loading">
@@ -87,165 +91,62 @@ const updateDarkClass = () => {
                </template>
              </el-input>
           </div>
-          <div class="user-info">
-             <el-popover placement="bottom" :width="350" trigger="click">
-                 <template #reference>
-                    <el-badge style="margin-right: 15px" is-dot :hidden="!notification.length ">
-                       <div class="notification">
-                         <el-icon><Bell/></el-icon>
-                         <div style="font-size: 10px">消息提醒 </div>
-                       </div>
-                    </el-badge>
-                 </template>
-                 <el-empty :image-size="80" description="暂无未读消息" v-if="!notification.length"/>
-                 <el-scrollbar :max-height="500" v-else>
-                    <light-card v-for="item in notification" class="notification-item" @click="confirmNotification(item.id,item.url)">
-                      <div>
-                        <el-tag :type="item.type">消息</el-tag>&nbsp;
-                        <span style="font-weight: bold">{{item.title}}</span>
-                      </div>
-                      <el-divider style="margin:7px 0 3px 0"/>
-                      <div style="font-size: 13px;opacity: 0.8 ;color: grey">
-                        {{item.content}}
-                      </div>
-                    </light-card>
-                    <div>
-                       <el-button size="small" type="info" :icon="Check" @click=" deleteAllNotification" style="width: 100%">清除全部未读消息</el-button>
-                    </div>
-                 </el-scrollbar>
-             </el-popover>
-              <div class="flex items-center p-4">
-                <el-switch
-                    v-model="isDark"
-                    :active-icon="Moon"
-                    :inactive-icon="Sunny"
-                    :style="switchStyle"
-                    @change="toggleDarkMode"
-                    style="margin-right: 20px"
-                />
-              </div>
-            <div class="profile">
-                 <div>{{store.user.username}}</div>
-                 <div>{{store.user.email}}</div>
-            </div>
-            <el-dropdown>
-              <el-avatar  :src="store.avatarUrl"/>
-              <template #dropdown>
-                <el-dropdown-item @click="goUserSetting">
-                  <el-icon><operation/></el-icon>
-                  个人设置
-                </el-dropdown-item>
-                <el-dropdown-item divided>
-                  <el-icon><message/></el-icon>
-                  消息列表
-                </el-dropdown-item>
-                <el-dropdown-item divided @click="userLogout">
-                  <el-icon><Back/></el-icon>
-                   退出登录
-                </el-dropdown-item>
+          <user-info>
+            <el-popover placement="bottom" :width="350" trigger="click">
+              <template #reference>
+                <el-badge style="margin-right: 15px" is-dot :hidden="!notification.length ">
+                  <div class="notification">
+                    <el-icon><Bell/></el-icon>
+                    <div style="font-size: 10px">消息提醒 </div>
+                  </div>
+                </el-badge>
               </template>
-            </el-dropdown>
-          </div>
+              <el-empty :image-size="80" description="暂无未读消息" v-if="!notification.length"/>
+              <el-scrollbar :max-height="500" v-else>
+                <light-card v-for="item in notification" class="notification-item" @click="confirmNotification(item.id,item.url)">
+                  <div>
+                    <el-tag :type="item.type">消息</el-tag>&nbsp;
+                    <span style="font-weight: bold">{{item.title}}</span>
+                  </div>
+                  <el-divider style="margin:7px 0 3px 0"/>
+                  <div style="font-size: 13px;opacity: 0.8 ;color: grey">
+                    {{item.content}}
+                  </div>
+                </light-card>
+                <div>
+                  <el-button size="small" type="info" :icon="Check" @click=" deleteAllNotification" style="width: 100%">清除全部未读消息</el-button>
+                </div>
+              </el-scrollbar>
+            </el-popover>
+          </user-info>
         </el-header>
         <el-container>
           <el-aside width="230px">
             <el-scrollbar style="height: calc(100vh - 55px)">
-              <el-menu router
-                       :default-active="$route.path"
-                       :default-openeds="['1','2','3']"
-                       style="min-height: calc(100vh - 55px)">
-                <el-sub-menu index="1">
+              <el-menu
+                  router
+                  :default-active="$route.path"
+                  :default-openeds="['1', '2', '3']"
+                  style="min-height: calc(100vh - 55px)">
+                <el-sub-menu :index="(index + 1).toString()"
+                             v-for="(menu, index) in userMenu">
                   <template #title>
-                    <el-icon><Location/></el-icon>
-                    <span><b>校园论坛</b></span>
+                    <el-icon>
+                      <component :is="menu.icon"/>
+                    </el-icon>
+                    <span><b>{{ menu.title }}</b></span>
                   </template>
-                  <el-menu-item index="/index">
+                  <el-menu-item :index="subMenu.index" v-for="subMenu in menu.sub">
                     <template #title>
-                      <el-icon><chat-dot-square/></el-icon>
-                      帖子广场
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="1-2">
-                    <template #title>
-                      <el-icon><Bell/></el-icon>
-                      失物招领
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="1-3">
-                    <template #title>
-                      <el-icon><Notification/></el-icon>
-                      校园活动
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="1-4">
-                    <template #title>
-                      <el-icon><Umbrella/></el-icon>
-                      表白墙
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="1-5">
-                    <template #title>
-                      <el-icon><School/></el-icon>
-                      海文考研
-                      <el-tag style="margin-left: 10px;font-size: 10px">合作机构</el-tag>
-                    </template>
-                  </el-menu-item>
-                </el-sub-menu>
-                <el-sub-menu index="2">
-                  <template #title>
-                    <el-icon><Position/></el-icon>
-                    <span><b>探索与发现</b></span>
-                  </template>
-                  <el-menu-item index="2-1">
-                    <template #title>
-                      <el-icon><Document/></el-icon>
-                      成绩查询
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="2-2">
-                    <template #title>
-                      <el-icon><Files/></el-icon>
-                      班级课程表
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="2-3">
-                    <template #title>
-                      <el-icon><Monitor/></el-icon>
-                      教务通知
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="2-4">
-                    <template #title>
-                      <el-icon><Collection/></el-icon>
-                      在线图书馆
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="2-5">
-                    <template #title>
-                      <el-icon><DataLine/></el-icon>
-                      预约教室
-                    </template>
-                  </el-menu-item>
-                </el-sub-menu>
-                <el-sub-menu index="3">
-                   <template #title>
-                       <el-icon><Operation/></el-icon>
-                       <span><b>个人设置</b></span>
-                   </template>
-                  <el-menu-item index="/index/user-setting">
-                    <template #title>
-                      <el-icon><User/></el-icon>
-                      个人信息设置
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="/index/privacy-setting">
-                    <template #title>
-                      <el-icon><Lock/></el-icon>
-                      账号安全设置
+                      <el-icon>
+                        <component :is="subMenu.icon"/>
+                      </el-icon>
+                      {{ subMenu.title }}
                     </template>
                   </el-menu-item>
                 </el-sub-menu>
               </el-menu>
+
             </el-scrollbar>
           </el-aside>
           <el-main class="main-content-page">
