@@ -1,0 +1,69 @@
+package com.example.controller.admin;
+
+import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.entity.RestBean;
+import com.example.entity.dto.Account;
+import com.example.entity.dto.AccountDetails;
+import com.example.entity.dto.AccountPrivacy;
+import com.example.entity.vo.response.AccountVO;
+import com.example.service.AccountDetailsService;
+import com.example.service.AccountPrivacyService;
+import com.example.service.AccountService;
+import jakarta.annotation.Resource;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin/user")
+public class AccountAdminController {
+    @Resource
+    AccountService accountService;
+    @Resource
+    AccountDetailsService accountDetailsService;
+    @Resource
+    AccountPrivacyService accountPrivacyService;
+    @GetMapping("/list")
+    public RestBean<JSONObject> list(int page,int size){
+        JSONObject object=new JSONObject();
+        List<AccountVO> list=accountService.page(Page.of(page,size))
+                .getRecords()
+                .stream()
+                .map(a->{
+                    AccountVO vo=new AccountVO();
+                    BeanUtils.copyProperties(a,vo);
+                    return vo;
+                })
+                .toList();
+        object.put("total",accountService.count());
+        object.put("list",list);
+        return RestBean.success(object);
+    }
+    @GetMapping("/detail")
+    public RestBean<JSONObject> detail(int id){
+        JSONObject obj=new JSONObject();
+        obj.put("detail",accountDetailsService.findAccountDetailsById(id));
+        obj.put("privacy",accountPrivacyService.getPrivacy(id));
+        return RestBean.success(obj);
+    }
+    @PostMapping("/save")
+    public RestBean<Void> saveAccount(@RequestBody JSONObject object){
+         int id=object.getInteger("id");
+         Account account=accountService.findAccountById(id);
+         Account save=object.toJavaObject(Account.class);
+         BeanUtils.copyProperties(save,account,"password","registerTime");
+         accountService.saveOrUpdate(account);
+         AccountDetails details = accountDetailsService.findAccountDetailsById(id);
+         AccountDetails saveDetails = object.getJSONObject("detail").toJavaObject(AccountDetails.class);
+         BeanUtils.copyProperties(saveDetails, details);
+         accountDetailsService.saveOrUpdate(details);
+         AccountPrivacy privacy = accountPrivacyService.getPrivacy(id);
+         AccountPrivacy savePrivacy = object.getJSONObject("privacy").toJavaObject(AccountPrivacy.class);
+         BeanUtils.copyProperties(savePrivacy, privacy);
+        accountPrivacyService.saveOrUpdate(savePrivacy);
+         return RestBean.success();
+
+    }
+}

@@ -104,7 +104,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
             return "此用户名已被其他用户注册,请换个新的";
         }
         String password=encoder.encode(vo.getPassword());
-        Account account=new Account(null,username,password,email,Const.ROLE_DEFAULT,null,new Date());
+        Account account=new Account(null,username,password,email,Const.ROLE_DEFAULT,null,new Date(),false,false);
         if (this.save(account)) {
             stringRedisTemplate.delete(Const.VERIFY_EMAIL_DATA+email);
             accountPrivacyMapper.insert(new AccountPrivacy(account.getId()));

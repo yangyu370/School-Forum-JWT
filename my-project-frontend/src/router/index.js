@@ -61,18 +61,32 @@ const router=createRouter({
             name: 'admin',
             component:()=>import("@/views/AdminView.vue"),
             children:[
+                {
+                    path:'',
+                    name:'welcome-admin',
+                    component:()=>import("@/views/admin/WelcomeAdmin.vue")
+                }
+                ,{
+                    path:'forum',
+                    name:'admin-forum',
+                    component:()=>import("@/views/admin/ForumAdmin.vue")
+                },{
+                    path:'user',
+                    name:'admin-user',
+                    component:()=>import("@/views/admin/UserAdmin.vue")
+                }
             ]
         }
     ]
 })
 router.beforeEach((to,from,next)=>{
    const isUnauthorized=unauthorized(),admin=isRoleAdmin()
-    if(to.name && to.name.startsWith('welcome-') && !isUnauthorized) {
+    if(to.fullPath.startsWith('/admin')&&!admin){
         next('/index')
     }
-    else if(to.fullPath.startsWith('/admin')&&!admin){
-        next("index")
-    } 
+    else if(to.name && to.name.startsWith('welcome-') && to.name !== 'welcome-admin' && !isUnauthorized) {
+        next('/index')
+    }
     else if(to.fullPath.startsWith('/index')&&isUnauthorized){
         next('/')
     }else{
