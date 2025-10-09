@@ -53,7 +53,8 @@ public class SecurityConfiguration {
                 )
                 .logout(conf->conf
                         .logoutUrl("/api/auth/logout")
-                        .logoutSuccessHandler(this::onLogoutSuccess))
+                        .logoutSuccessHandler(this::onLogoutSuccess)
+                        .permitAll())
                 .exceptionHandling(conf->conf
                         .authenticationEntryPoint(this::onUnAuthorized)
                         .accessDeniedHandler(this::onAccessDeny)
@@ -81,13 +82,16 @@ public class SecurityConfiguration {
         request.setCharacterEncoding("utf-8");
         User user = (User) authentication.getPrincipal();
         Account account=accountservice.getAccountByNameOrEmail(user.getUsername());
+
+        if(account.isBanned()){
+            response.getWriter().write(RestBean.forbidden("登录失败，该账户已被封禁").asJsonString());
+            return;
+        }
         String token=utils.createJwt(user,account.getId(),account.getUsername());
         AuthorizeVO authorizeVO=new AuthorizeVO();
         BeanUtils.copyProperties(account,authorizeVO);
         authorizeVO.setToken(token);
         authorizeVO.setExpire(utils.expireTime());
-//        authorizeVO.setRole(account.getRole());
-//        authorizeVO.setUsername(account.getUsername());
         response.getWriter().write(RestBean.success(authorizeVO).asJsonString());
     }
     public void onAuthenticationFailure(HttpServletRequest request,
@@ -95,7 +99,6 @@ public class SecurityConfiguration {
                                         AuthenticationException exception) throws IOException{
         response.setContentType("application/json;charset=utf-8");
         response.getWriter().write(RestBean.unauthorized( exception.getMessage()).asJsonString());
-
     }
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
        response.setContentType("application/json;charset=utf-8");

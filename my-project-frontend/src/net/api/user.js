@@ -8,6 +8,14 @@ export const apiUserInfo = (loadingRef) => {
     get('/api/user/info', (data) => {
         store.user = data
         loadingRef.value = false
+    }, (message, code) => {
+        // 获取用户信息失败（可能是被封禁或token失效），清除token并跳转到登录页
+        loadingRef.value = false
+        // 清除本地token
+        localStorage.removeItem('access_token')
+        sessionStorage.removeItem('access_token')
+        ElMessage.warning(message || '登录状态已失效，请重新登录')
+        router.push('/')
     })
 }
 export const apiAuthRegister = (data)=>{

@@ -1,12 +1,13 @@
 package com.example.controller;
-
 import com.example.entity.RestBean;
+import com.example.entity.dto.Account;
 import com.example.entity.dto.Interact;
 import com.example.entity.dto.TopicType;
 import com.example.entity.vo.request.AddCommentVO;
 import com.example.entity.vo.request.TopicCreateVO;
 import com.example.entity.vo.request.TopicUpdateVO;
 import com.example.entity.vo.response.*;
+import com.example.service.AccountService;
 import com.example.service.TopicService;
 import com.example.service.WeatherService;
 import com.example.utils.ControllerUtils;
@@ -30,6 +31,8 @@ public class ForumController {
     @Resource
     TopicService topicService;
     @Resource
+    AccountService accountService;
+    @Resource
     ControllerUtils utils;
 
     @GetMapping("/weather")
@@ -51,6 +54,8 @@ public class ForumController {
 
     @PostMapping("/create-topic")
     public RestBean<Void> createTopic(@RequestBody @Valid TopicCreateVO vo, @RequestAttribute("id") int id) {
+        Account account = accountService.findAccountById(id);
+        if(account.isMute()) return RestBean.forbidden("你已被禁言，无法发表主题");
         return utils.messageHandler(() -> topicService.createTopic(id, vo));
     }
 
@@ -90,6 +95,8 @@ public class ForumController {
 
     @PostMapping("/add-comment")
     public RestBean<Void> addComment(@Valid @RequestBody AddCommentVO vo, @RequestAttribute("id") int id) {
+        Account account = accountService.findAccountById(id);
+        if(account.isMute()) return RestBean.forbidden("你已被禁言，无法发表评论");
         return utils.messageHandler(() -> topicService.createComment(id, vo));
     }
 

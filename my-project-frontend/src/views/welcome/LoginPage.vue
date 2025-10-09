@@ -4,6 +4,7 @@ import {Lock} from '@element-plus/icons-vue'
 import {login} from "@/net/index.js";
 import {reactive, ref} from "vue";
 import router from "@/router/index.js";
+
 const formRef=ref()
 const form=reactive(
     {
@@ -20,10 +21,14 @@ const rule={
     {required:true,message:'请输入密码'}
   ]
 }
-function userLogin(){
-  formRef.value.validate((valid)=>{
-    if(valid){
-      login(form.username,form.password,form.remember,success=>{router.push('/index')})
+
+function userLogin() {
+  formRef.value.validate((valid) => {
+    if(valid) {
+      login(form.username, form.password, form.remember, () => {
+        // 登录成功后，使用完整页面跳转以重新加载用户信息
+        window.location.href = '/index'
+      })
     }
   })
 }

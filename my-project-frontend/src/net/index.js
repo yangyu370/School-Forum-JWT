@@ -84,8 +84,11 @@ function logout(success,failure=defaultFailure){
        ElMessage.success("退出登录成功")
        success()
    },(message,code,url)=>{
-       console.error(`退出登录失败: ${message}`)
-       failure(message,code,url)
+       // 即使服务器返回失败，也要清除本地token，避免用户卡住
+       deleteAccessToken()
+       console.error(`退出登录失败: ${message}，已清除本地凭证`)
+       ElMessage.warning("退出登录成功")
+       success()
    })
 }
 function isRoleAdmin() {
