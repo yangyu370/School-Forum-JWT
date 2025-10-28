@@ -338,27 +338,6 @@ npm run dev
 - 🚀 Token黑名单机制
 - 🚀 数据库索引优化
 
----
-
-## 🐛 常见问题
-
-### Q1: 无法发送邮件？
-**A:** 检查邮箱配置是否正确，确保开启了SMTP服务并使用授权码。
-
-### Q2: 图片上传失败？
-**A:** 检查MinIO服务是否启动，配置是否正确。
-
-### Q3: 登录后无法访问接口？
-**A:** 检查Token是否正确携带在请求头中，格式为 `Authorization: Bearer {token}`。
-
-### Q4: 被封禁用户无法登出？
-**A:** 已修复，被封禁用户现在可以正常登出。
-
-### Q5: 刷新页面后进入死循环？
-**A:** 已修复，被封禁用户刷新页面会自动跳转到登录页。
-
----
-
 ## 📝 开发计划
 
 - [ ] 实现失物招领功能
@@ -395,8 +374,8 @@ npm run dev
 ## 👥 作者
 
 **您的名字**
-- GitHub: [@your-github](https://github.com/your-github)
-- Email: your-email@example.com
+- GitHub: [@yangyu370](https://github.com/yangyu370)
+- Email: 1904474691@qq.com
 
 ---
 
@@ -415,15 +394,13 @@ npm run dev
 
 如有任何问题或建议，请通过以下方式联系我们：
 - 提交 Issue
-- 发送邮件至：your-email@example.com
-
 ---
 
 <div align="center">
 
 **⭐ 如果这个项目对你有帮助，请给一个Star！ ⭐**
 
-Made with ❤️ by [Your Name]
+Made with ❤️ by 养鱼
 
 </div>
 
