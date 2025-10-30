@@ -6,7 +6,8 @@ import {
   apiForumComments,
   apiForumInteract,
   apiForumTopic,
-  apiForumUpdateTopic
+  apiForumUpdateTopic,
+  apiForumTopicDelete,
 } from "@/net/api/forum";
 
 import {reactive} from "vue";
@@ -26,7 +27,7 @@ import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
 import Card from "@/components/Card.vue";
 import TopicTag from "@/components/TopicTag.vue";
 import InteractButton from "@/components/InteractButton.vue";
-import {ElMessage} from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
 import {ref} from "vue";
 import {useStore} from "@/store";
 import TopicEditor from "@/components/TopicEditor.vue";
@@ -48,6 +49,13 @@ const  comment=reactive({
   quote: -1
 })
 const init = () => apiForumTopic(tid, data => {
+  if (!data) {
+    ElMessage.error('帖子不存在或已被删除')
+    setTimeout(() => {
+      window.location.href = '/index'
+    }, 1500)
+    return
+  }
   topic.data = data
   topic.like = data.interact.like
   topic.collect = data.interact.collect
@@ -88,6 +96,27 @@ function deleteComment(id) {
   apiForumCommentDelete(id, () => {
     ElMessage.success('删除评论成功！')
     loadComments(topic.page)
+  })
+}
+function deleteTopic(){
+  ElMessageBox.confirm(
+      '确定要删除这篇帖子吗？删除后将无法恢复，相关的评论、点赞和收藏也会一并删除。',
+      '删除确认',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
+  ).then(() => {
+    apiForumTopicDelete(tid, () => {
+      ElMessage.success('帖子删除成功！')
+      router.push('/index').then(() => {
+        router.go(0)  // 跳转完成后再刷新
+      })
+    })
+  }).catch(() => {
+    // 用户点击取消，不做任何操作
   })
 }
 </script>
@@ -151,6 +180,8 @@ function deleteComment(id) {
                               v-model:checked="topic.collect">
                <el-icon><Star/></el-icon>
              </interact-button>
+             <el-link :icon="Delete" type="danger"  v-if="store.user.id===topic.data.user.id"
+                      style="margin-left: 20px" @click="deleteTopic">删除帖子</el-link>
            </div>
       </div>
     </div>

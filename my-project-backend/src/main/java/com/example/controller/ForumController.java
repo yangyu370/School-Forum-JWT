@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/api/forum")
 public class ForumController {
@@ -72,7 +71,11 @@ public class ForumController {
 
     @GetMapping("/topic")
     public RestBean<TopicDetailVO> Topic(@RequestParam @Min(0) int tid, @RequestAttribute("id") int id) {
-        return RestBean.success(topicService.getTopicDetail(tid, id));
+        TopicDetailVO detail = topicService.getTopicDetail(tid, id);
+        if (detail == null) {
+            return RestBean.failure(404, "帖子不存在或已被删除");
+        }
+        return RestBean.success(detail);
     }
 
     @GetMapping("/interact")
@@ -110,6 +113,12 @@ public class ForumController {
     public RestBean<Void>  DeleteComment(@RequestParam  @Min(0) int id,
                                          @RequestAttribute("id") int uid){
         topicService.deleteComment(id,uid);
+        return RestBean.success();
+    }
+    @GetMapping("/delete-topic")
+    public RestBean<Void> DeleteTopic(@RequestParam @Min(0) int id,
+                                      @RequestAttribute("id") int uid){
+        topicService.deleteTopic(id,uid);
         return RestBean.success();
     }
 }

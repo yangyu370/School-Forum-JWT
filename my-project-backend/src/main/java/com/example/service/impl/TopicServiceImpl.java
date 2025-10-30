@@ -23,6 +23,7 @@ import com.example.utils.FlowUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import java.util.*;
@@ -53,6 +54,9 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     CacheUtils cacheUtils;
     @Resource
     NotificationService notificationService;
+    @Autowired
+    private TopicMapper topicMapper;
+
     @PostConstruct
     public void initTypes() {
         this.types = this.listTypes().stream().map(TopicType::getId).collect(Collectors.toSet());
@@ -152,7 +156,32 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     @Override
     public void deleteComment(int id, int uid) {
         topicCommentMapper.delete(Wrappers.<TopicComment>query().eq("id", id).eq("uid", uid));
+
     }
+
+    @Override
+    public void deleteTopic(int id, int uid) {
+        Topic topic = baseMapper.selectOne(Wrappers.<Topic>query()
+                .eq("id", id)
+                .eq("uid", uid));
+        if (topic == null) {
+            throw new RuntimeException("帖子不存在或无权删除");
+        }
+        //删除评论
+        DeleteCommentByTid(id);
+        //删除提醒
+        notificationService.deleteNotificationByTid(id);
+        //删除点赞，收藏
+        topicMapper.deleteTopicInteractBytid(id,"like");
+        topicMapper.deleteTopicInteractBytid(id,"collect");
+        // 5. 清除Redis中的互动缓存
+        cleanRedisInteract(id);
+        //清除缓存
+        cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE + "*");
+        //删除帖子
+        baseMapper.deleteById(id);
+    }
+
     @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;
@@ -189,6 +218,9 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     public TopicDetailVO getTopicDetail(int tid,int uid) {
         TopicDetailVO vo=new TopicDetailVO();
         Topic topic=baseMapper.selectById(tid);
+        if (topic == null) {
+            return null;  // 返回 null，让 Controller 层处理
+        }
         BeanUtils.copyProperties(topic,vo);
         TopicDetailVO.Interact interact=new TopicDetailVO.Interact(
                 hasInteract(tid, uid, "like"),
@@ -312,5 +344,28 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
       if(stringRedisTemplate.opsForHash().hasKey(type,key))
           return Boolean.parseBoolean(stringRedisTemplate.opsForHash().get(type, key).toString());
       return baseMapper.userInteractCount(tid,uid,type)>0;
+    }
+    private void DeleteCommentByTid(int tid){
+        topicCommentMapper.delete(Wrappers.<TopicComment>query().eq("tid",tid));
+    }
+    private void cleanRedisInteract(int tid) {
+        cleanRedisInteractByType(tid, "like");
+        cleanRedisInteractByType(tid, "collect");
+    }
+    private void cleanRedisInteractByType(int tid, String type) {
+        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(type);
+        List<Object> keysToDelete = new ArrayList<>();
+        // 找出所有与该帖子相关的键
+        for (Object key : entries.keySet()) {
+            String keyStr = key.toString();
+            // key格式为 "tid:uid"
+            if (keyStr.startsWith(tid + ":")) {
+                keysToDelete.add(key);
+            }
+        }
+        // 批量删除
+        if (!keysToDelete.isEmpty()) {
+            stringRedisTemplate.opsForHash().delete(type, keysToDelete.toArray());
+        }
     }
 }

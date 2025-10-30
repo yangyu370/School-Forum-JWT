@@ -9,7 +9,7 @@
 
 一个基于 Spring Boot + Vue 3 的现代化校园论坛系统
 
-[在线演示](http://your-demo-url.com) | [API文档](./API文档.md) | [使用指南](#使用指南)
+ [API文档](./API文档.md) 
 
 </div>
 

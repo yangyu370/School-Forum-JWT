@@ -44,3 +44,6 @@ export const apiForumCollect = (success) =>
 
 export const apiForumCollectDelete = (tid, success) =>
     get(`/api/forum/interact?tid=${tid}&type=collect&state=false`, success)
+
+export const apiForumTopicDelete = (id, success) =>
+    get(`/api/forum/delete-topic?id=${id}`, success)

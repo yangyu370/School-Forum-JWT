@@ -39,4 +39,9 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
          Notification notification=new Notification(null,uid,title,content,type,url,new Date());
          this.save(notification);
     }
+
+    @Override
+    public void deleteNotificationByTid(int tid) {
+        this.remove(Wrappers.<Notification>query().like("url","/index/topic-detail"+tid));
+    }
 }
