@@ -17,4 +17,5 @@ public class Topic {
     Integer uid;
     Integer type;
     Date time;
+    Boolean top;
 }

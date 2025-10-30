@@ -47,3 +47,6 @@ export const apiForumCollectDelete = (tid, success) =>
 
 export const apiForumTopicDelete = (id, success) =>
     get(`/api/forum/delete-topic?id=${id}`, success)
+
+export const apiAdminTopicList=(page,size,success)=>
+    get(`/api/admin/forum/list?page=${page}&size=${size}`,success)

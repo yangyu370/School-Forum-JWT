@@ -232,7 +232,7 @@ const collects=ref(false);
        </div>
      </div>
      <div>
-        <topic-editor :show="editor" @close="editor=false" @success="editor=false;onTopicCreate"/>
+        <topic-editor :show="editor" @close="editor=false" @success="onTopicCreate"/>
         <topic-collect-list :show="collects" @close="collects=false"/>
      </div>
   </div>

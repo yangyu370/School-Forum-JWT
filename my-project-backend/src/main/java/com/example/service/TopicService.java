@@ -28,4 +28,5 @@ public interface TopicService extends IService<Topic> {
    List<CommentVO> comments(int tid,int pageNumber);
    void deleteComment(int id,int uid);
    void deleteTopic(int id,int uid);
+   TopicPreviewVO ResolveToPreview(Topic topic);
 }

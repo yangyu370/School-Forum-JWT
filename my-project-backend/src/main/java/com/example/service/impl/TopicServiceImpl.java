@@ -2,7 +2,6 @@ package com.example.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -181,7 +180,10 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         //删除帖子
         baseMapper.deleteById(id);
     }
-
+    @Override
+    public TopicPreviewVO ResolveToPreview(Topic topic) {
+        return this.resolveToPreview(topic);
+    }
     @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;
