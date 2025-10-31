@@ -184,6 +184,12 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     public TopicPreviewVO ResolveToPreview(Topic topic) {
         return this.resolveToPreview(topic);
     }
+
+    @Override
+    public void TopTopic(int tid,boolean status) {
+        topicMapper.update(null,Wrappers.<Topic>update().eq("id",tid).set("top",status?1:0));
+    }
+
     @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;

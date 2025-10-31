@@ -23,6 +23,16 @@ export  const useStore=defineStore('general',{
                 return 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
         }
     },actions:{
+        async loadForumTypes() {
+            if (this.forum.types.length > 0) return  // 如果已加载则跳过
+            const {apiForumTypes} = await import('@/net/api/forum')
+            apiForumTypes(data => {
+                const array = []
+                array.push({name: '全部', id: 0, color: 'linear-gradient(45deg, white, red, orange, gold, green, blue)'})
+                data.forEach(d => array.push(d))
+                this.forum.types = array
+            })
+        },
         findTypeById(id){
             for (let type of this.forum.types) {
                 if(type.id === id){
