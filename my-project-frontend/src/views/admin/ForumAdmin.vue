@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {Document, View} from "@element-plus/icons-vue";
+import {ChatSquare, Document, View} from "@element-plus/icons-vue";
 import {reactive, watchEffect} from "vue";
-import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic} from "@/net/api/forum"
+import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic,apiForumComments} from "@/net/api/forum"
 import {useStore} from "@/store";
 import ColorDot from "@/components/ColorDot.vue";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
@@ -102,6 +102,23 @@ function DeleteTopic(){
 
   })
 }
+const comment=reactive({
+  display:false,
+  loading:false,
+  id:0,
+  page:1,
+  temp:[]
+})
+function openComment(id){
+  comment.display=true;
+  comment.loading=true;
+  comment.id=id;
+  apiForumComments(id,comment.page,data=>{
+    comment.temp=data;
+    comment.loading=false;
+  })
+  console.log(comment.temp)
+}
 </script>
 <template>
   <div class="forum-admin">
@@ -158,7 +175,7 @@ function DeleteTopic(){
                    :total="listTable.total"
                    v-model:current-page="listTable.page"
                    v-model:page-size="listTable.size"/>
-    <el-drawer v-model="editor.display">
+    <el-drawer v-model="editor.display" size="30%">
        <template #header>
          <div>
            <div style="font-weight:bold">
@@ -188,11 +205,51 @@ function DeleteTopic(){
         <img :src="editor.temp.image" v-if="editor.temp.image">
       </div>
       <template #footer>
-        <el-button type="primary" @click="toggleTop">
-          {{ editor.top ? '取消置顶' : '置顶' }}
-        </el-button>
-        <el-button type="danger" :disabled="editor.role=='admin'" @click="DeleteTopic">删除</el-button>
+        <div style="display: flex; justify-content: space-between;">
+          <el-button @click="openComment(editor.id)" :icon="ChatSquare">
+            评论区
+          </el-button>
+          <div>
+            <el-button type="primary" @click="toggleTop">
+              {{ editor.top ? '取消置顶' : '置顶' }}
+            </el-button>
+            <el-button type="danger" :disabled="editor.role=='admin'" @click="DeleteTopic">删除</el-button>
+          </div>
+        </div>
       </template>
+    </el-drawer>
+    <el-drawer v-model="comment.display" size="30%" class="comment-drawer">
+      <template #header>
+        <div>
+          <div style="font-weight:bold">
+            <el-icon><ChatSquare/></el-icon> 评论区详情
+          </div>
+          <div style="font-size:13px;color: gray;margin-top: 5px">
+            查看或删除该帖子的评论
+          </div>
+        </div>
+      </template>
+      <el-skeleton :loading="comment.loading" animated :rows="5">
+        <div v-if="comment.temp && comment.temp.length > 0">
+          <div v-for="(item, index) in comment.temp"
+               :key="item.id"
+               class="comment-item">
+            <div class="comment-header">
+              <el-avatar :size="40" :src="store.avatarUserUrl(item.user.avatar)"/>
+              <div class="comment-user-info">
+                <div class="comment-username">{{ item.user.username }}</div>
+                <div class="comment-time">{{ new Date(item.time).toLocaleString() }}</div>
+              </div>
+            </div>
+            <div v-if="item.quote" class="comment-quote">
+              回复:{{item.quote}}
+            </div>
+            <div class="comment-content" v-html="ConvertToHtml(item.content)"/>
+            <el-divider v-if="index < comment.temp.length - 1"/>
+          </div>
+        </div>
+        <el-empty v-else description="暂无评论" :image-size="100"/>
+      </el-skeleton>
     </el-drawer>
   </div>
 </template>
@@ -223,6 +280,56 @@ function DeleteTopic(){
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
+  }
+  .comment-drawer :deep(.el-drawer) {
+    background-color: #909399;
+  }
+
+  .comment-drawer :deep(.el-drawer__body) {
+    background-color: #909399;
+  }
+
+  .comment-item {
+    padding: 15px 0;
+  }
+
+  .comment-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .comment-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .comment-username {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .comment-time {
+    font-size: 12px;
+    color: #909399;
+  }
+
+  .comment-content {
+    margin-left: 52px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+  }
+  .comment-quote {
+    font-size: 13px;
+    color: grey;
+    background-color: rgba(94, 94, 94, 0.1);
+    padding: 10px;
+    margin-top: 10px;
+    margin-left: 52px;
+    border-radius: 5px;
   }
 }
 </style>
