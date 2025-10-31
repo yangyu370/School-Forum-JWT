@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {Document, EditPen, View} from "@element-plus/icons-vue";
+import {Document, View} from "@element-plus/icons-vue";
 import {reactive, watchEffect} from "vue";
-import {apiAdminTopicList,apiForumTopic,apiAdminSetTop} from "@/net/api/forum"
+import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic} from "@/net/api/forum"
 import {useStore} from "@/store";
 import ColorDot from "@/components/ColorDot.vue";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
@@ -23,13 +23,15 @@ const editor=reactive({
   display:false,
   temp:{},
   top:false,
-  loading:false
+  loading:false,
+  role:''
 })
-function openEditor(id,top){
+function openEditor(id,top,role){
   editor.id=id;
   editor.display=true;
   editor.loading=true;
   editor.top=top;
+  editor.role=role;
   apiForumTopic(id,data => {
     editor.temp=data;
     editor.loading=false;
@@ -68,6 +70,33 @@ function toggleTop() {
       }
       editor.top = newStatus
       ElMessage.success(`${action}成功`)
+      editor.display = false
+    })
+  }).catch(() => {
+
+  })
+}
+function DeleteTopic(){
+  ElMessageBox.confirm(
+      `确认要删除该帖子吗?`,
+      `删除确认`,
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+  ).then(() => {
+    apiAdminDeleteTopic(editor.id, () => {
+      ElMessage.success('删除成功')
+      editor.display = false
+      const index = listTable.data.findIndex(t => t.id === editor.id)
+      if (index !== -1) {
+        listTable.data.splice(index, 1)
+      }
+      listTable.total--
+      if (listTable.data.length === 0 && listTable.page > 1) {
+        listTable.page--
+      }
     })
   }).catch(() => {
 
@@ -121,7 +150,7 @@ function toggleTop() {
        </el-table-column>
        <el-table-column label="操作" width="100" align="center">
          <template #default="{row}">
-           <el-button :icon="View" size="small" type="primary" @click="openEditor(row.id,row.top)">查看</el-button>
+           <el-button :icon="View" size="small" type="primary" @click="openEditor(row.id,row.top,row.role)">查看</el-button>
          </template>
        </el-table-column>
     </el-table>
@@ -162,7 +191,7 @@ function toggleTop() {
         <el-button type="primary" @click="toggleTop">
           {{ editor.top ? '取消置顶' : '置顶' }}
         </el-button>
-        <el-button type="danger">删除</el-button>
+        <el-button type="danger" :disabled="editor.role=='admin'" @click="DeleteTopic">删除</el-button>
       </template>
     </el-drawer>
   </div>

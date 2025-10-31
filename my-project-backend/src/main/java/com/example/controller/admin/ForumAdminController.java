@@ -14,10 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
-//todo 1.管理员删除普通用户的帖子
 //todo 4.筛选查看不同板块的帖子
 @RestController
 @RequestMapping("/api/admin/forum")
@@ -49,5 +47,14 @@ public class ForumAdminController {
         topicService.TopTopic(tid,status);
         cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE + "*");
         return RestBean.success();
+    }
+    @GetMapping("/Admin-deleteTopic")
+    public RestBean<Void> AdminDeleteTopic(int tid){
+        try {
+            topicService.AdminDeleteTopic(tid);
+            return RestBean.success();
+        } catch (RuntimeException e) {
+            return RestBean.failure(400, e.getMessage());
+        }
     }
 }

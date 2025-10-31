@@ -14,6 +14,7 @@ import com.example.entity.vo.response.TopTopicVO;
 import com.example.entity.vo.response.TopicDetailVO;
 import com.example.entity.vo.response.TopicPreviewVO;
 import com.example.mapper.*;
+import com.example.service.AccountService;
 import com.example.service.NotificationService;
 import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
@@ -55,7 +56,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     NotificationService notificationService;
     @Autowired
     private TopicMapper topicMapper;
-
+    @Resource
+    AccountService accountService;
     @PostConstruct
     public void initTypes() {
         this.types = this.listTypes().stream().map(TopicType::getId).collect(Collectors.toSet());
@@ -188,6 +190,28 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     @Override
     public void TopTopic(int tid,boolean status) {
         topicMapper.update(null,Wrappers.<Topic>update().eq("id",tid).set("top",status?1:0));
+    }
+
+    @Override
+    public void AdminDeleteTopic(int tid) {
+        Topic topic=baseMapper.selectById(tid);
+        if(topic==null)
+            throw new RuntimeException("帖子不存在");
+        Account author = accountService.getById(topic.getUid());
+        if (author != null && "admin".equals(author.getRole())) {
+            throw new RuntimeException("无权删除管理员的帖子");
+        }
+        DeleteCommentByTid(tid);
+        notificationService.deleteNotificationByTid(tid);
+        //删除点赞，收藏
+        topicMapper.deleteTopicInteractBytid(tid,"like");
+        topicMapper.deleteTopicInteractBytid(tid,"collect");
+        // 5. 清除Redis中的互动缓存
+        cleanRedisInteract(tid);
+        //清除缓存
+        cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE + "*");
+        //删除帖子
+        baseMapper.deleteById(tid);
     }
 
     @Override
