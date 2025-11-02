@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {ChatSquare, Document, View} from "@element-plus/icons-vue";
+import {ChatSquare, Delete, Document, View, Loading} from "@element-plus/icons-vue";
 import {reactive, watchEffect} from "vue";
-import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic,apiForumComments} from "@/net/api/forum"
+import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic,apiForumComments,apiAdminDeleteComment} from "@/net/api/forum"
 import {useStore} from "@/store";
 import ColorDot from "@/components/ColorDot.vue";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
@@ -105,19 +105,79 @@ function DeleteTopic(){
 const comment=reactive({
   display:false,
   loading:false,
+  loadingMore:false,  // 加载更多的loading状态
   id:0,
-  page:1,
-  temp:[]
+  page:0,  // 页码从0开始，后端会+1
+  temp:[],
+  hasMore:true  // 是否还有更多评论
 })
 function openComment(id){
   comment.display=true;
   comment.loading=true;
   comment.id=id;
+  comment.page=0;  // 重置页码为0（后端会+1变成第1页）
+  comment.temp=[];  // 清空旧数据
+  comment.hasMore=true;  // 重置hasMore状态
   apiForumComments(id,comment.page,data=>{
     comment.temp=data;
     comment.loading=false;
+    // 如果返回数据少于10条，说明没有更多了
+    comment.hasMore = data && data.length >= 10;
   })
-  console.log(comment.temp)
+}
+// 加载更多评论
+function loadMoreComments(){
+  if(comment.loadingMore || !comment.hasMore) return;
+  comment.loadingMore=true;
+  comment.page++;
+  apiForumComments(comment.id,comment.page,data=>{
+    if(data && data.length > 0){
+      comment.temp.push(...data);
+      // 如果返回数据少于10条，说明没有更多了
+      comment.hasMore = data.length >= 10;
+    }else{
+      comment.hasMore=false;
+    }
+    comment.loadingMore=false;
+  })
+}
+// 评论区滚动事件处理
+function handleCommentScroll(event){
+  const target = event.target;
+  const scrollHeight = target.scrollHeight;
+  const scrollTop = target.scrollTop;
+  const clientHeight = target.clientHeight;
+  // 距离底部50px时触发加载
+  if(scrollHeight - scrollTop - clientHeight < 50 && comment.hasMore && !comment.loadingMore){
+    loadMoreComments();
+  }
+}
+function deleteComment(id){
+  ElMessageBox.confirm(
+      `确定要删除该评论吗`,
+      `删除确认`,
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+  ).then(
+      ()=>{
+        apiAdminDeleteComment(id,()=>{
+          ElMessage.success('删除成功')
+          // 删除成功后重新加载所有评论
+          comment.page=0;
+          comment.temp=[];
+          comment.hasMore=true;
+          apiForumComments(comment.id, comment.page, data => {
+            comment.temp = data;
+            comment.hasMore = data && data.length >= 10;
+          })
+        })
+      }
+  ).catch(() => {
+
+  })
 }
 </script>
 <template>
@@ -225,31 +285,49 @@ function openComment(id){
             <el-icon><ChatSquare/></el-icon> 评论区详情
           </div>
           <div style="font-size:13px;color: gray;margin-top: 5px">
-            查看或删除该帖子的评论
+            查看或删除该帖子的评论（共{{comment.temp.length}}条）
           </div>
         </div>
       </template>
-      <el-skeleton :loading="comment.loading" animated :rows="5">
-        <div v-if="comment.temp && comment.temp.length > 0">
-          <div v-for="(item, index) in comment.temp"
-               :key="item.id"
-               class="comment-item">
-            <div class="comment-header">
-              <el-avatar :size="40" :src="store.avatarUserUrl(item.user.avatar)"/>
-              <div class="comment-user-info">
-                <div class="comment-username">{{ item.user.username }}</div>
-                <div class="comment-time">{{ new Date(item.time).toLocaleString() }}</div>
+      <div class="comment-list-container" @scroll="handleCommentScroll">
+        <el-skeleton :loading="comment.loading" animated :rows="5">
+          <div v-if="comment.temp && comment.temp.length > 0">
+            <div v-for="(item, index) in comment.temp"
+                 :key="item.id"
+                 class="comment-item">
+              <div class="comment-header">
+                <el-avatar :size="40" :src="store.avatarUserUrl(item.user.avatar)"/>
+                <div class="comment-user-info">
+                  <div class="comment-username">
+                    {{ item.user.username }}
+                    <el-tag type="danger" size="small" style="margin-left: 8px" v-if="item.user.role === 'admin'">
+                      管理员
+                    </el-tag>
+                  </div>
+                  <div class="comment-time">{{ new Date(item.time).toLocaleString() }}</div>
+                </div>
+                <div style="margin-left:auto">
+                  <el-button type="danger" plain="plain" :icon="Delete" :disabled="item.user.role==='admin'" @click="deleteComment(item.id)">删除</el-button>
+                </div>
               </div>
+              <div v-if="item.quote" class="comment-quote">
+                回复:{{item.quote}}
+              </div>
+              <div class="comment-content" v-html="ConvertToHtml(item.content)"/>
+              <el-divider v-if="index < comment.temp.length - 1"/>
             </div>
-            <div v-if="item.quote" class="comment-quote">
-              回复:{{item.quote}}
+            <!-- 加载更多指示器 -->
+            <div v-if="comment.loadingMore" class="loading-more">
+              <el-icon class="is-loading"><Loading /></el-icon>
+              <span style="margin-left: 8px">加载中...</span>
             </div>
-            <div class="comment-content" v-html="ConvertToHtml(item.content)"/>
-            <el-divider v-if="index < comment.temp.length - 1"/>
+            <div v-else-if="!comment.hasMore && comment.temp.length > 0" class="no-more">
+              没有更多评论了
+            </div>
           </div>
-        </div>
-        <el-empty v-else description="暂无评论" :image-size="100"/>
-      </el-skeleton>
+          <el-empty v-else description="暂无评论" :image-size="100"/>
+        </el-skeleton>
+      </div>
     </el-drawer>
   </div>
 </template>
@@ -287,6 +365,14 @@ function openComment(id){
 
   .comment-drawer :deep(.el-drawer__body) {
     background-color: #909399;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .comment-list-container {
+    height: 100%;
+    overflow-y: auto;
+    padding: 20px;
   }
 
   .comment-item {
@@ -309,6 +395,8 @@ function openComment(id){
   .comment-username {
     font-weight: bold;
     font-size: 14px;
+    display: flex;
+    align-items: center;
   }
 
   .comment-time {
@@ -330,6 +418,22 @@ function openComment(id){
     margin-top: 10px;
     margin-left: 52px;
     border-radius: 5px;
+  }
+
+  .loading-more {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #909399;
+    font-size: 14px;
+  }
+
+  .no-more {
+    text-align: center;
+    padding: 20px;
+    color: #909399;
+    font-size: 13px;
   }
 }
 </style>

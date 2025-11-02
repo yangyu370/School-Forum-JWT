@@ -31,4 +31,5 @@ public interface TopicService extends IService<Topic> {
    TopicPreviewVO ResolveToPreview(Topic topic);
    void TopTopic(int tid,boolean status);
    void AdminDeleteTopic(int tid);
+   String AdminDeleteComment(int id);
 }

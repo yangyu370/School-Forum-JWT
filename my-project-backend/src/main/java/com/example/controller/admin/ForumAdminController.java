@@ -10,10 +10,8 @@ import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
 import com.example.utils.Const;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 //todo 4.筛选查看不同板块的帖子
@@ -56,5 +54,19 @@ public class ForumAdminController {
         } catch (RuntimeException e) {
             return RestBean.failure(400, e.getMessage());
         }
+    }
+    @GetMapping("/Admin-deleteComment")
+    public RestBean<Void> AdminDeleteComment(@RequestParam int id){
+        String str=topicService.AdminDeleteComment(id);
+        if(str != null){
+            if(str.contains("不存在")){
+                return RestBean.failure(404, str);
+            } else if(str.contains("管理员") || str.contains("无权")){
+                return RestBean.failure(403, str);
+            } else {
+                return RestBean.failure(400, str);
+            }
+        }
+        return RestBean.success();
     }
 }

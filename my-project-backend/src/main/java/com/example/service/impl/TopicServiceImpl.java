@@ -215,6 +215,19 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     }
 
     @Override
+    public String AdminDeleteComment(int id) {
+        TopicComment comment=topicCommentMapper.selectById(id);
+        if(comment == null)
+            return "该评论不存在或已被删除";
+        Account author = accountService.getById(comment.getUid());
+        if(author != null && "admin".equals(author.getRole())){
+            return "无权删除管理员发布的评论";
+        }
+        topicCommentMapper.deleteById(id);
+        return null;
+    }
+
+    @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;
         List<TopicPreviewVO> list=cacheUtils.TakeListFromCache(key,TopicPreviewVO.class);

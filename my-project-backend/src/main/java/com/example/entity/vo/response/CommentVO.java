@@ -21,6 +21,7 @@ public class CommentVO {
         String email;
         String wx;
         String qq;
+        String role;
     }
 
 }
