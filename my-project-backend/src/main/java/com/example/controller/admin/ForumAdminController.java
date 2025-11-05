@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 //todo 4.筛选查看不同板块的帖子
+//todo 管理员发布公告
 @RestController
 @RequestMapping("/api/admin/forum")
 public class ForumAdminController {
