@@ -174,7 +174,6 @@ const editorOption={
        <div style="margin-top: 5px;font-size: 13px;color: grey">
          <color-dot :color="editor.type ? editor.type.color : '#dedede'"/>
          <span style="margin-left: 5px">{{editor.type?editor.type.desc:'请在上方选择一个帖子类型'}}</span>
-
        </div>
        <div style="margin-top: 10px;height: 460px;overflow: hidden;border-radius: 5px" v-loading="editor.uploading" element-loading-text="正在上传图片，请稍后...">
           <quill-editor v-model:content="editor.text" style="height: calc(100% - 44px)"
@@ -185,14 +184,13 @@ const editorOption={
        </div>
        <div style="margin-top: 5px;display: flex;justify-content: space-between">
          <div style="color: grey;font-size: 13px">
-            当前字数 {{ contentLength }} （最大支持20000字）
+            当前字数 {{ contentLength }} （最大支持2000字）
          </div>
          <div>
            <el-button type="primary" :icon="Position" @click="submitText">
                {{submitButton}}
            </el-button>
          </div>
-
        </div>
      </el-drawer>
   </div>

@@ -5,10 +5,13 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Topic;
+import com.example.entity.vo.request.AnnouncementCreateVO;
 import com.example.entity.vo.response.TopicPreviewVO;
+import com.example.service.AnnouncementService;
 import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
 import com.example.utils.Const;
+import com.example.utils.ControllerUtils;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +23,11 @@ import java.util.List;
 @RequestMapping("/api/admin/forum")
 public class ForumAdminController {
     @Resource
+    ControllerUtils utils;
+    @Resource
     TopicService topicService;
+    @Resource
+    AnnouncementService announcementService;
     @Resource
     CacheUtils cacheUtils;
     @GetMapping("/list")
@@ -70,4 +77,8 @@ public class ForumAdminController {
         }
         return RestBean.success();
     }
+   @PostMapping("/create-announcement")
+    public RestBean<Void> createAnnouncement(@RequestBody AnnouncementCreateVO vo, @RequestAttribute("id") int uid){
+       return utils.messageHandler(()->announcementService.CreateAnnouncement(vo,uid));
+   }
 }

@@ -25,17 +25,19 @@ function deleteCollect(index, tid) {
 </script>
 
 <template>
+  <div>
     <el-drawer :model-value="show" @close="emit('close')" @open="init" title="帖子收藏列表">
-       <div class="collect-list">
-           <light-card v-for="(item,index)  in list" class="topic-card" @click="router.push(`/index/topic-detail/${item.id}`)">
-             <topic-tag :type="item.type"/>
-             <div class="title">
-                 <b>{{item.title}}</b>
-             </div>
-             <el-link type="danger" @click.stop="deleteCollect(index,item.id)">删除</el-link>
-           </light-card>
-       </div>
+      <div class="collect-list">
+        <light-card v-for="(item,index)  in list" class="topic-card" @click="router.push(`/index/topic-detail/${item.id}`)">
+          <topic-tag :type="item.type"/>
+          <div class="title">
+            <b>{{item.title}}</b>
+          </div>
+          <el-link type="danger" @click.stop="deleteCollect(index,item.id)">删除</el-link>
+        </light-card>
+      </div>
     </el-drawer>
+  </div>
 </template>
 
 <style scoped>
@@ -62,5 +64,13 @@ function deleteCollect(index, tid) {
      cursor: pointer;
      scale: 1.1;
    }
+ }
+ :deep(.el-drawer__header) {
+   margin-bottom: 10px;
+ }
+ :deep(.el-drawer){
+   margin:10px;
+   height: calc(100% - 20px);
+   border-radius: 10px;
  }
 </style>

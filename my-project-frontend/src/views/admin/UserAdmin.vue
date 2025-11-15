@@ -168,4 +168,9 @@ function userStatus(user){
     margin-bottom: 0;
   }
 }
+:deep(.el-drawer){
+  margin:10px;
+  height: calc(100% - 20px);
+  border-radius: 10px;
+}
 </style>

@@ -381,7 +381,6 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
             length+=JSONObject.from(op).getString("insert").length();
             if(length>max) return false;
         }
-
         return true;
     }
     private boolean hasInteract(int tid,int uid,String type){

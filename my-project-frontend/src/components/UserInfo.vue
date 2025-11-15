@@ -20,7 +20,7 @@ function goUserSetting(){
   <div class="user-info">
     <template v-if="isRoleAdmin()">
       <el-button type="primary" size="small"
-                 @click="router.push('/index')"
+                 @click="() => router.push('/index')"
                  v-if="isAdminPage">
         回到用户端
         <el-icon style="margin-left: 5px">
@@ -28,7 +28,7 @@ function goUserSetting(){
         </el-icon>
       </el-button>
       <el-button type="primary" size="small"
-                 @click="router.push('/admin')"
+                 @click="() => router.push('/admin')"
                  v-else>
         前往管理端
         <el-icon style="margin-left: 5px">

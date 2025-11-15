@@ -126,7 +126,7 @@ const collects=ref(false);
            </div>
          </light-card>
       <light-card style="margin-top: 10px;display: flex;flex-direction: column;gap: 10px">
-        <div v-for="item in topics.top" class="top-topic" @click="router.push('/index/topic-detail/'+item.id)">
+        <div v-for="item in topics.top" class="top-topic" @click="() => router.push('/index/topic-detail/'+item.id)">
           <el-tag type="info" size="small">置顶</el-tag>
           <div>{{item.title}}</div>
           <div>{{new Date(item.time).toLocaleDateString()}}</div>
@@ -146,7 +146,7 @@ const collects=ref(false);
                   v-infinite-scroll="updateList"
                   :infinite-scroll-disabled="topics.end"
                   :infinite-scroll-distance="10">
-               <light-card  v-for="item in topics.list" :key="item" class="topic-card" @click="router.push('/index/topic-detail/'+item.id)">
+               <light-card  v-for="item in topics.list" :key="item" class="topic-card" @click="() => router.push('/index/topic-detail/'+item.id)">
                  <div style="display: flex">
                    <div>
                      <el-avatar :size="30" :src="store.avatarUserUrl(item.avatar)"/>

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {ChatSquare, Delete, Document, View, Loading} from "@element-plus/icons-vue";
-import {reactive, watchEffect} from "vue";
+import {ChatSquare, Delete, Document, View, Loading, Plus} from "@element-plus/icons-vue";
+import {reactive, watchEffect,ref} from "vue";
 import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic,apiForumComments,apiAdminDeleteComment} from "@/net/api/forum"
 import {useStore} from "@/store";
 import ColorDot from "@/components/ColorDot.vue";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
 import {ElMessage, ElMessageBox} from "element-plus";
+import AnnouncementEditor from "@/components/AnnouncementEditor.vue";
 const listTable=reactive({
   page: 1,
   size: 10,
@@ -18,7 +19,7 @@ watchEffect(()=>apiAdminTopicList(listTable.page,listTable.size,data => {
   listTable.total=data.total;
   listTable.data=data.list;
 }))
-const editor=reactive({
+const topic=reactive({
   id:0,
   display:false,
   temp:{},
@@ -27,14 +28,14 @@ const editor=reactive({
   role:''
 })
 function openEditor(id,top,role){
-  editor.id=id;
-  editor.display=true;
-  editor.loading=true;
-  editor.top=top;
-  editor.role=role;
+  topic.id=id;
+  topic.display=true;
+  topic.loading=true;
+  topic.top=top;
+  topic.role=role;
   apiForumTopic(id,data => {
-    editor.temp=data;
-    editor.loading=false;
+    topic.temp=data;
+    topic.loading=false;
   })
 }
 function ConvertToHtml(content) {
@@ -50,7 +51,7 @@ function ConvertToHtml(content) {
   }
 }
 function toggleTop() {
-  const currentStatus = editor.top
+  const currentStatus = topic.top
   const newStatus = !currentStatus
   const action = newStatus ? '置顶' : '取消置顶'
   ElMessageBox.confirm(
@@ -62,15 +63,15 @@ function toggleTop() {
         type: 'warning'
       }
   ).then(() => {
-    apiAdminSetTop(editor.id, newStatus, () => {
+    apiAdminSetTop(topic.id, newStatus, () => {
       // 更新表格中的数据
-      const item = listTable.data.find(t => t.id === editor.id)
+      const item = listTable.data.find(t => t.id === topic.id)
       if (item) {
         item.top = newStatus ? 1 : 0
       }
-      editor.top = newStatus
+      topic.top = newStatus
       ElMessage.success(`${action}成功`)
-      editor.display = false
+      topic.display = false
     })
   }).catch(() => {
 
@@ -86,10 +87,10 @@ function DeleteTopic(){
         type: 'warning'
       }
   ).then(() => {
-    apiAdminDeleteTopic(editor.id, () => {
+    apiAdminDeleteTopic(topic.id, () => {
       ElMessage.success('删除成功')
-      editor.display = false
-      const index = listTable.data.findIndex(t => t.id === editor.id)
+      topic.display = false
+      const index = listTable.data.findIndex(t => t.id === topic.id)
       if (index !== -1) {
         listTable.data.splice(index, 1)
       }
@@ -105,11 +106,11 @@ function DeleteTopic(){
 const comment=reactive({
   display:false,
   loading:false,
-  loadingMore:false,  // 加载更多的loading状态
+  loadingMore:false,
   id:0,
-  page:0,  // 页码从0开始，后端会+1
+  page:0,
   temp:[],
-  hasMore:true  // 是否还有更多评论
+  hasMore:true
 })
 function openComment(id){
   comment.display=true;
@@ -179,16 +180,25 @@ function deleteComment(id){
 
   })
 }
+const editor=ref(false);
 </script>
 <template>
   <div class="forum-admin">
-    <div class="title">
-      <el-icon><Document/></el-icon>
-      论坛帖子列表
+    <div style="display: flex;justify-content: space-between;align-items:end">
+      <div>
+        <div class="title">
+          <el-icon><Document/></el-icon>
+          论坛帖子列表
+        </div>
+        <div class="desc">
+          管理论坛中的所有帖子，包括帖子的查看，删除以及设置置顶帖子
+        </div>
+      </div>
+      <div style="margin-bottom: 20px">
+        <el-button :icon="Plus" type="primary" @click="editor=true">发布论坛公告</el-button>
+      </div>
     </div>
-    <div class="desc">
-      管理论坛中的所有帖子，包括帖子的查看，删除以及设置置顶帖子
-    </div>
+
     <el-table :data="listTable.data" height="600">
        <el-table-column prop="id" label="帖子编号 " width="80"/>
        <el-table-column label="用户名" width="100">
@@ -235,7 +245,7 @@ function deleteComment(id){
                    :total="listTable.total"
                    v-model:current-page="listTable.page"
                    v-model:page-size="listTable.size"/>
-    <el-drawer v-model="editor.display" size="30%">
+    <el-drawer v-model="topic.display" size="30%" class="topic-drawer">
        <template #header>
          <div>
            <div style="font-weight:bold">
@@ -247,33 +257,33 @@ function deleteComment(id){
          </div>
        </template>
       <div>
-        <div class="topic-meta" v-if="editor.temp.user">
+        <div class="topic-meta" v-if="topic.temp.user">
           <div style="display: flex;align-items: center;gap: 10px">
-            <el-avatar :size="40" :src="store.avatarUserUrl(editor.temp.user.avatar)"/>
-            <div style="font-weight: bold">{{ editor.temp.user.username }}</div>
+            <el-avatar :size="40" :src="store.avatarUserUrl(topic.temp.user.avatar)"/>
+            <div style="font-weight: bold">{{ topic.temp.user.username }}</div>
           </div>
           <div style="margin-left: 10px;gap: 5px;">
             <div style="font-size: 12px; color: grey">
-              发布于 {{ new Date(editor.temp.time).toLocaleString() }}
+              发布于 {{ new Date(topic.temp.time).toLocaleString() }}
             </div>
           </div>
         </div>
         <div class="topic-title">
-          {{editor.temp.title}}
+          {{ topic.temp.title }}
         </div>
-         <div class="topic-content" v-html="ConvertToHtml(editor.temp.content)"/>
-        <img :src="editor.temp.image" v-if="editor.temp.image">
+         <div class="topic-content" v-html="ConvertToHtml(topic.temp.content)"/>
+        <img :src="topic.temp.image" v-if="topic.temp.image">
       </div>
       <template #footer>
         <div style="display: flex; justify-content: space-between;">
-          <el-button @click="openComment(editor.id)" :icon="ChatSquare">
+          <el-button @click="openComment(topic.id)" :icon="ChatSquare">
             评论区
           </el-button>
           <div>
             <el-button type="primary" @click="toggleTop">
-              {{ editor.top ? '取消置顶' : '置顶' }}
+              {{ topic.top ? '取消置顶' : '置顶' }}
             </el-button>
-            <el-button type="danger" :disabled="editor.role=='admin'" @click="DeleteTopic">删除</el-button>
+            <el-button type="danger" :disabled="topic.role=='admin'" @click="DeleteTopic">删除</el-button>
           </div>
         </div>
       </template>
@@ -329,6 +339,7 @@ function deleteComment(id){
         </el-skeleton>
       </div>
     </el-drawer>
+    <AnnouncementEditor :show="editor" @close="editor=false" @success="editor=false"/>
   </div>
 </template>
 
@@ -435,5 +446,18 @@ function deleteComment(id){
     color: #909399;
     font-size: 13px;
   }
+}
+
+/* 只针对 topic-drawer 和 comment-drawer 的样式，不影响 AnnouncementEditor */
+:deep(.topic-drawer.el-drawer),
+:deep(.comment-drawer.el-drawer) {
+  margin: 10px;
+  height: calc(100% - 20px);
+  border-radius: 10px;
+}
+
+:deep(.topic-drawer .el-drawer__header),
+:deep(.comment-drawer .el-drawer__header) {
+  margin-bottom: 10px;
 }
 </style>
