@@ -37,7 +37,7 @@ function getAvatarUrl(avatar) {
       <div class="announcement-list" v-loading="loading">
         <!-- 公告列表 -->
         <div v-if="list.length > 0">
-          <light-card v-for="item in list" :key="item.id" class="announcement-card">
+          <light-card v-for="item in list" :key="item.id" class="announcement-card" style="margin:10px 0">
             <!-- 公告头部 -->
             <div class="announcement-header">
               <div class="user-info">
@@ -73,6 +73,7 @@ function getAvatarUrl(avatar) {
   padding: 10px;
 }
 
+/* 浅色模式 - 卡片样式 */
 .announcement-card {
   padding: 24px;
   background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
@@ -81,6 +82,12 @@ function getAvatarUrl(avatar) {
   transition: all .3s ease;
   position: relative;
   overflow: hidden;
+}
+
+/* 暗黑模式 - 卡片样式 */
+.dark .announcement-card {
+  background: linear-gradient(135deg, #2c2c2c 0%, #1f1f1f 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .announcement-card::before {
@@ -94,6 +101,10 @@ function getAvatarUrl(avatar) {
 
 .announcement-card:hover {
   transform: translateY(-4px);
+}
+
+.dark .announcement-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 .announcement-header {
@@ -114,6 +125,10 @@ function getAvatarUrl(avatar) {
   transition: all .3s;
 }
 
+.dark .user-info .el-avatar {
+  border: 2px solid #4c4d4f;
+}
+
 .announcement-card:hover .el-avatar {
   border-color: #409EFF;
   transform: scale(1.05);
@@ -131,12 +146,20 @@ function getAvatarUrl(avatar) {
   color: #303133;
 }
 
+.dark .username {
+  color: #e5eaf3;
+}
+
 .time {
   font-size: 13px;
   color: #909399;
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.dark .time {
+  color: #a8abb2;
 }
 
 .time::before {
@@ -155,6 +178,10 @@ function getAvatarUrl(avatar) {
   gap: 8px;
 }
 
+.dark .announcement-title {
+  color: #e5eaf3;
+}
+
 .announcement-title::before {
   content: '📢';
   font-size: 18px;
@@ -170,6 +197,12 @@ function getAvatarUrl(avatar) {
   border: 1px solid rgba(228, 231, 237, 0.6);
 }
 
+.dark .announcement-content {
+  color: #c0c4cc;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(76, 77, 79, 0.6);
+}
+
 .announcement-content :deep(p) {
   margin: 10px 0;
 }
@@ -181,6 +214,10 @@ function getAvatarUrl(avatar) {
   margin: 12px 0;
 }
 
+.dark .announcement-content :deep(img) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
 .announcement-content :deep(pre) {
   background-color: #f5f7fa;
   padding: 12px;
@@ -190,12 +227,23 @@ function getAvatarUrl(avatar) {
   font-size: 13px;
 }
 
+.dark .announcement-content :deep(pre) {
+  background-color: #1a1a1a;
+  border: 1px solid #4c4d4f;
+  color: #e5eaf3;
+}
+
 .announcement-content :deep(code) {
   background-color: #f5f7fa;
   padding: 2px 6px;
   border-radius: 3px;
   color: #e74c3c;
   font-size: 13px;
+}
+
+.dark .announcement-content :deep(code) {
+  background-color: #1a1a1a;
+  color: #ff6b6b;
 }
 
 .announcement-content :deep(blockquote) {
@@ -208,12 +256,23 @@ function getAvatarUrl(avatar) {
   border-radius: 4px;
 }
 
+.dark .announcement-content :deep(blockquote) {
+  color: #c0c4cc;
+  background-color: rgba(64, 158, 255, 0.15);
+}
+
 .announcement-content :deep(h1),
 .announcement-content :deep(h2),
 .announcement-content :deep(h3) {
   color: #303133;
   margin: 16px 0 8px;
   font-weight: 600;
+}
+
+.dark .announcement-content :deep(h1),
+.dark .announcement-content :deep(h2),
+.dark .announcement-content :deep(h3) {
+  color: #e5eaf3;
 }
 
 .announcement-content :deep(a) {
@@ -236,6 +295,11 @@ function getAvatarUrl(avatar) {
   color: #303133;
 }
 
+.dark :deep(.el-drawer__header) {
+  border-bottom: 2px solid #4c4d4f;
+  color: #e5eaf3;
+}
+
 :deep(.el-drawer) {
   margin: 10px;
   height: calc(100% - 20px);
@@ -243,9 +307,17 @@ function getAvatarUrl(avatar) {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
+.dark :deep(.el-drawer) {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
 :deep(.el-divider) {
   margin: 20px 0 0;
   border-top: 1px dashed #e4e7ed;
+}
+
+.dark :deep(.el-divider) {
+  border-top: 1px dashed #4c4d4f;
 }
 
 :deep(.el-tag) {
