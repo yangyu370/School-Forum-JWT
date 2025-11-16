@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
+import {get} from "@/net/index.js";
 import LightCard from "@/components/LightCard.vue";
 import {
   ArrowRightBold,
@@ -15,7 +16,6 @@ import {
   Picture, Star
 } from "@element-plus/icons-vue";
 import Weather from "@/components/Weather.vue";
-import { get } from "@/net/index.js";
 import { ElMessage } from "element-plus";
 import TopicEditor from "@/components/TopicEditor.vue";
 import {useStore} from "@/store/index.js";
@@ -25,6 +25,7 @@ import router from "@/router/index.js";
 import TopicTag from "@/components/TopicTag.vue";
 import TopicCollectList from "@/components/TopicCollectList.vue";
 import {apiForumTopicList, apiForumTopTopics, apiForumWeather} from "@/net/api/forum.js";
+import AnnouncementList from "@/components/AnnouncementList.vue";
 const store = useStore();
 const topics=reactive({
   list:[],
@@ -107,6 +108,7 @@ onMounted(() => {
 
 const editor=ref(false);
 const collects=ref(false);
+const announcement=ref(false)
 </script>
 
 <template>
@@ -189,9 +191,9 @@ const collects=ref(false);
              </div>
          </light-card>
          <light-card style="margin-top: 10px">
-             <div style="font-weight: bold;margin-top: 10px">
-               <el-icon><CollectionTag/></el-icon>
-                 论坛公告
+             <div class="announcement-list-button" @click="announcement=true">
+               <span><el-icon><CollectionTag/></el-icon>论坛公告</span>
+               <el-icon style="transform: translateY(3px);"><ArrowRightBold/></el-icon>
              </div>
              <el-divider style="margin:10px 0"/>
              <div style="font-size: 14px;margin:10px;color:grey">
@@ -234,12 +236,23 @@ const collects=ref(false);
      <div>
         <topic-editor :show="editor" @close="editor=false" @success="onTopicCreate"/>
         <topic-collect-list :show="collects" @close="collects=false"/>
+        <announcement-list :show="announcement" @close="announcement=false"/>
      </div>
   </div>
 </template>
 
 <style lang="less" scoped>
 .collect-list-button{
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  transition: .3s;
+  &:hover{
+    cursor: pointer;
+    opacity: 0.8;
+  }
+}
+.announcement-list-button{
   font-size: 14px;
   display: flex;
   justify-content: space-between;

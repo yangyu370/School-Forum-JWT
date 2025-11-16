@@ -56,3 +56,7 @@ export const apiAdminDeleteTopic = (tid, success) =>
     get(`/api/admin/forum/Admin-deleteTopic?tid=${tid}`, success)
 export const apiAdminDeleteComment=(id,success)=>
     get(`/api/admin/forum/Admin-deleteComment?id=${id}`,success)
+export const apiAdminCreateAnnouncement=(data,success)=>
+    post('/api/admin/forum/create-announcement',data,success)
+export const apiAnnouncementList=(success)=>
+    get('/api/forum/list-announcement',success)

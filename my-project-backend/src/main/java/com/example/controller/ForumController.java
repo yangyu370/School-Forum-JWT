@@ -8,6 +8,7 @@ import com.example.entity.vo.request.TopicCreateVO;
 import com.example.entity.vo.request.TopicUpdateVO;
 import com.example.entity.vo.response.*;
 import com.example.service.AccountService;
+import com.example.service.AnnouncementService;
 import com.example.service.TopicService;
 import com.example.service.WeatherService;
 import com.example.utils.ControllerUtils;
@@ -17,6 +18,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -33,6 +35,8 @@ public class ForumController {
     AccountService accountService;
     @Resource
     ControllerUtils utils;
+    @Autowired
+    private AnnouncementService announcementService;
 
     @GetMapping("/weather")
     public RestBean<WeatherVO> weather(double longitude, double latitude) {
@@ -120,5 +124,9 @@ public class ForumController {
                                       @RequestAttribute("id") int uid){
         topicService.deleteTopic(id,uid);
         return RestBean.success();
+    }
+    @GetMapping("/list-announcement")
+    public RestBean<List<AnnouncementVO>> ListAnnouncement(){
+        return RestBean.success(announcementService.listAnnouncement());
     }
 }
