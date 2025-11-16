@@ -42,7 +42,7 @@ public class AnnouncementServiceImpl extends ServiceImpl<AnnouncementMapper, Ann
 
     @Override
     public List<AnnouncementVO> listAnnouncement() {
-        return this.list(Wrappers.<Announcement>query().orderByAsc("time"))
+        return this.list(Wrappers.<Announcement>query().orderByDesc("time"))
                 .stream()
                 .map(announcement -> {
                     AnnouncementVO vo=new AnnouncementVO();
