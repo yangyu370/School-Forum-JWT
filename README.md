@@ -373,10 +373,8 @@ npm run dev
 
 ## 👥 作者
 
-**您的名字**
 - GitHub: [@yangyu370](https://github.com/yangyu370)
 - Email: 1904474691@qq.com
-
 ---
 
 ## 🙏 致谢

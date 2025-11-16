@@ -10,7 +10,6 @@ import com.example.entity.vo.response.AnnouncementVO;
 import com.example.mapper.AnnouncementMapper;
 import com.example.service.AccountService;
 import com.example.service.AnnouncementService;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 

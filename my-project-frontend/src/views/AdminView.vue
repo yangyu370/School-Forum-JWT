@@ -8,7 +8,9 @@ import {
   Location,
   Monitor, Notification, Position, School,
   Umbrella,
-  User
+  User,
+  Moon,
+  Sunny
 } from "@element-plus/icons-vue";
 import UserInfo from "@/components/UserInfo.vue";
 import {inject, onMounted, ref} from "vue";
@@ -39,6 +41,8 @@ const adminMenu=[
   }
 ]
 const loading=inject("userLoading")
+const isDark = ref(false)
+
 function handleTabClick({ props }) {
   router.push(props.name)
 }
@@ -67,6 +71,22 @@ function addAdminTab(menu) {
   }
 }
 
+const updateDarkClass = () => {
+  const html = document.documentElement
+  if (isDark.value) {
+    html.classList.add('dark')
+  } else {
+    html.classList.remove('dark')
+  }
+}
+
+const toggleDarkMode = () => {
+  isDark.value = !isDark.value
+  updateDarkClass()
+  // 保存到 localStorage
+  localStorage.setItem('dark-mode', isDark.value.toString())
+}
+
 onMounted(() => {
   const initPage = adminMenu
       .flatMap(menu => menu.sub)
@@ -74,6 +94,11 @@ onMounted(() => {
   if(initPage) {
     addAdminTab(initPage)
   }
+  
+  // 从 localStorage 读取暗黑模式设置
+  const savedMode = localStorage.getItem('dark-mode')
+  isDark.value = savedMode === 'true'
+  updateDarkClass()
 })
 </script>
 
@@ -127,7 +152,16 @@ onMounted(() => {
                               :key="tab.name"/>
                </el-tabs>
              </div>
-             <user-info/>
+             <user-info>
+               <!-- 暗黑模式切换按钮 -->
+               <div class="theme-toggle" @click="toggleDarkMode" style="margin-right: 15px">
+                 <el-icon>
+                   <Moon v-if="!isDark"/>
+                   <Sunny v-else/>
+                 </el-icon>
+                 <div style="font-size: 10px">{{ isDark ? '浅色' : '深色' }}</div>
+               </div>
+             </user-info>
           </el-header>
           <el-main>
             <router-view v-slot="{ Component }">
@@ -183,5 +217,17 @@ onMounted(() => {
     }
   }
 
+}
+
+.theme-toggle {
+  font-size: 22px;
+  line-height: 14px;
+  text-align: center;
+  transition: all .3s;
+  &:hover {
+    cursor: pointer;
+    color: var(--el-color-primary);
+    transform: scale(1.1);
+  }
 }
 </style>

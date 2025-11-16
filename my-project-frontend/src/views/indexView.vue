@@ -6,7 +6,7 @@ import {
   Document, Files,
   Location, Lock, Monitor,
   Notification, Operation, Position, School, Search,
-  Umbrella, User, Check
+  Umbrella, User, Check, Moon, Sunny
 } from '@element-plus/icons-vue'
 import LightCard from "@/components/LightCard.vue";
 import UserInfo from "@/components/UserInfo.vue";
@@ -54,10 +54,14 @@ const searchInput=reactive({
   text: ''
 })
 const isDark = ref(false)
+
 onMounted(() => {
-  isDark.value = localStorage.getItem('dark-mode') === 'true'
+  // 从 localStorage 读取暗黑模式设置
+  const savedMode = localStorage.getItem('dark-mode')
+  isDark.value = savedMode === 'true'
   updateDarkClass()
 })
+
 const updateDarkClass = () => {
   const html = document.documentElement
   if (isDark.value) {
@@ -65,6 +69,13 @@ const updateDarkClass = () => {
   } else {
     html.classList.remove('dark')
   }
+}
+
+const toggleDarkMode = () => {
+  isDark.value = !isDark.value
+  updateDarkClass()
+  // 保存到 localStorage
+  localStorage.setItem('dark-mode', isDark.value.toString())
 }
 </script>
 <template>
@@ -88,6 +99,15 @@ const updateDarkClass = () => {
              </el-input>
           </div>
           <user-info>
+            <!-- 暗黑模式切换按钮 -->
+            <div class="theme-toggle" @click="toggleDarkMode" style="margin-right: 15px">
+              <el-icon>
+                <Moon v-if="!isDark"/>
+                <Sunny v-else/>
+              </el-icon>
+              <div style="font-size: 10px">{{ isDark ? '浅色' : '深色' }}</div>
+            </div>
+            
             <el-popover placement="bottom" :width="350" trigger="click">
               <template #reference>
                 <el-badge style="margin-right: 15px" is-dot :hidden="!notification.length ">
@@ -167,6 +187,18 @@ const updateDarkClass = () => {
   }
   margin: 10px 0;
 }
+ .theme-toggle {
+   font-size: 22px;
+   line-height: 14px;
+   text-align: center;
+   transition: all .3s;
+   &:hover {
+     cursor: pointer;
+     color: var(--el-color-primary);
+     transform: scale(1.1);
+   }
+ }
+ 
  .notification{
    font-size: 22px;
    line-height: 14px;
