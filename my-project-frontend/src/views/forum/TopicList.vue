@@ -200,7 +200,7 @@ const announcement=ref(false)
                 卢本伟没有开挂，卢本伟表演了十七张牌被秒杀上央视的精彩表演
              </div>
          </light-card>
-         <light-card style="margin-top: 10px">
+         <light-card style="margin-top: 10px;">
               <div>
                 <el-icon><Calendar/></el-icon>
                 天气信息

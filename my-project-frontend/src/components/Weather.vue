@@ -21,13 +21,15 @@ defineProps({
         </div>
     </div>
     <el-divider style="margin: 10px 0"/>
-    <div style="display: grid;grid-template-columns: repeat(5,1fr);text-align: center">
-          <div v-for="item in data.hourly">
-             <div style="font-size: 13px">{{new Date(item.fxTime).getHours()}}时</div>
-             <div style="font-size: 23px"><i class="`qi-${item.icon}-fill`"></i></div>
-             <div style="font-size: 11px">{{item.temp}}℃</div>
+      <div style="display: grid;grid-template-columns: repeat(5, 1fr);text-align: center">
+        <div v-for="item in data.hourly">
+         <div style="font-size: 13px">{{new Date(item.fxTime).getHours()}} 时</div>
+          <div style="font-size: 23px">
+           <i :class="`qi-${item.icon}-fill`"></i>
           </div>
-    </div>
+         <div style="font-size: 12px">{{item.temp}}℃</div>
+     </div>
+   </div>
  </div>
 </template>
 

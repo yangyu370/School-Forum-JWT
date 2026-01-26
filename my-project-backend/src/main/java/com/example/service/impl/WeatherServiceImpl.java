@@ -14,7 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
-import java.lang.Math;
+
 @Service
 public class WeatherServiceImpl implements WeatherService {
 
@@ -25,7 +25,8 @@ public class WeatherServiceImpl implements WeatherService {
 
     @Value("${spring.weather.key}")
     String key;
-
+    @Value("${spring.weather.apiHost}")
+    String apiHost;
     public WeatherVO fetchWeather(double longitude, double latitude){
         return fetchFromCache(longitude, latitude);
     }
@@ -34,7 +35,7 @@ public class WeatherServiceImpl implements WeatherService {
 //        longitude = Math.round(longitude * 100.0) / 100.0;
 //        latitude = Math.round(latitude * 100.0) / 100.0;
         JSONObject geo = this.decompressStingToJson(rest.getForObject(
-                "https://me487qq4gv.re.qweatherapi.com/geo/v2/city/lookup?location="+longitude+","+latitude+"&key="+key, byte[].class));
+                "https://"+apiHost+"/geo/v2/city/lookup?location="+longitude+","+latitude+"&key="+key, byte[].class));
         if(geo == null) return null;
         JSONObject location = geo.getJSONArray("location").getJSONObject(0);
         String id = location.getString("id");
@@ -52,11 +53,11 @@ public class WeatherServiceImpl implements WeatherService {
         WeatherVO vo = new WeatherVO();
         vo.setLocation(location);
         JSONObject now = this.decompressStingToJson(rest.getForObject(
-                "https://me487qq4gv.re.qweatherapi.com/v7/weather/now?location="+id+"&key="+key, byte[].class));
+                "https://"+apiHost+"/v7/weather/now?location="+id+"&key="+key, byte[].class));
         if(now == null) return null;
         vo.setNow(now.getJSONObject("now"));
         JSONObject hourly = this.decompressStingToJson(rest.getForObject(
-                "https://me487qq4gv.re.qweatherapi.com/v7/weather/24h?location="+id+"&key="+key, byte[].class));
+                "https://"+apiHost+"/v7/weather/24h?location="+id+"&key="+key, byte[].class));
         if(hourly == null) return null;
         vo.setHourly(new JSONArray(hourly.getJSONArray("hourly").stream().limit(5).toList()));
         return vo;

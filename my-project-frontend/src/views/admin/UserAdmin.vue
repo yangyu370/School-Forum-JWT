@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {EditPen, User} from "@element-plus/icons-vue";
-import {apiUserList,apiUserDetailTotal,apiUserSave} from "@/net/api/user"
-import {reactive, watchEffect} from "vue";
+import {apiUserList} from "@/net/api/user"
+import {reactive, watchEffect,ref} from "vue";
 import {useStore} from "@/store"
-import {ElMessage} from "element-plus";
+import UserEditor from "@/components/UserEditor.vue";
 const userTable=reactive({
    page: 1,
    size: 10,
@@ -11,35 +11,13 @@ const userTable=reactive({
    data:[]
 })
 const store=useStore()
-const editor=reactive({
-    id: 0,
-    display: false,
-    temp:{},
-    loading:false
-})
+const  editorRef=ref()
 
 watchEffect(()=>apiUserList(userTable.page,userTable.size,data => {
    userTable.total=data.total;
    userTable.data=data.list;
 }))
-function openUserEditor(user){
-   editor.id=user.id;
-   editor.display=true;
-   editor.loading=true;
-   apiUserDetailTotal(user.id,data => {
-        editor.temp={...data,...user}
-        editor.loading=false;
 
-   })
-}
-function saveUserDetail(){
-   editor.display=false;
-   apiUserSave(editor.temp,()=>{
-       const user=userTable.data.find(d=>d.id===editor.id)
-       Object.assign(user,editor.temp)
-       ElMessage.success("数据保存成功")
-   })
-}
 function userStatus(user){
   if(user.mute&&user.banned)
     return '禁言中，封禁中'
@@ -49,6 +27,14 @@ function userStatus(user){
     return '封禁中'
   else
     return '正常'
+}
+
+function handleEditUser(row) {
+  if (editorRef.value) {
+    editorRef.value.openUserEditor(row)
+  } else {
+    console.error('editorRef is not available')
+  }
 }
 
 </script>
@@ -78,8 +64,8 @@ function userStatus(user){
               <el-tag type="primary" v-else>普通用户</el-tag>
             </template>
          </el-table-column>
-         <el-table-column label="邮箱" prop="email" width="200"/>
-         <el-table-column label="注册时间" width="180" >
+         <el-table-column label="邮箱" prop="email" width="200" show-overflow-tooltip/>
+         <el-table-column label="注册时间" width="180"  show-overflow-tooltip>
            <template #default="{row}">
              {{new Date(row.registerTime).toLocaleString()}}
            </template>
@@ -89,9 +75,11 @@ function userStatus(user){
               {{userStatus(row)}}
             </template>
          </el-table-column>
-         <el-table-column label="操作" align="center">
+         <el-table-column label="操作" align="center" fixed="right">
              <template #default="{row}">
-               <el-button type="primary" size="small" :icon="EditPen" @click="openUserEditor(row)" :disabled="row.role==='admin'">编辑</el-button>
+               <el-button type="primary" size="small" :icon="EditPen"
+                          @click="handleEditUser(row)"
+                          :disabled="row.role==='admin'">编辑</el-button>
              </template>
          </el-table-column>
     </el-table>
@@ -99,47 +87,7 @@ function userStatus(user){
                    :total="userTable.total"
                    v-model:current-page="userTable.page"
                    v-model:page-size="userTable.size"/>
-    <el-drawer v-model="editor.display">
-       <template #header>
-         <div>
-            <div style="font-weight:bold">
-              <el-icon><EditPen/> </el-icon> 编辑用户信息
-            </div>
-            <div style="font-size:13px;color: gray;margin-top: 5px">
-                编辑完成后请点击下方保存按钮
-            </div>
-         </div>
-       </template>
-       <el-form label-position="top">
-          <el-form-item label="用户名">
-            <el-input v-model="editor.temp.username"/>
-          </el-form-item>
-          <el-form-item label="电子邮箱">
-             <el-input v-model="editor.temp.email"/>
-          </el-form-item>
-          <div style="display:flex; font-size:14px;gap: 20px">
-              <div>
-                 <span style="margin-right: 10px">禁言</span>
-                 <el-switch v-model="editor.temp.mute"/>
-              </div>
-              <el-divider style="height: 30px" direction="vertical"/>
-              <div>
-                 <span style="margin-right: 10px">账号封禁</span>
-                 <el-switch v-model="editor.temp.banned"/>
-              </div>
-          </div>
-          <div style="margin-top: 10px;color: gray; font-size: 14px">
-            注册时间: {{new Date(editor.temp.registerTime).toLocaleString()}}
-          </div>
-          <el-divider />
-       </el-form>
-      <template #footer>
-          <div>
-            <el-button type="danger" @click="editor.display=false">取消</el-button>
-            <el-button type="primary" @click="saveUserDetail">保存</el-button>
-          </div>
-      </template>
-    </el-drawer>
+   <user-editor :user-table="userTable" ref="editorRef"/>
  </div>
 </template>
 

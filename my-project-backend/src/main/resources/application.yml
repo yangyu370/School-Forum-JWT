@@ -2,7 +2,7 @@ spring:
   mail:
     host: smtp.163.com
     username: 13607563956@163.com
-    password: AZddLxADGLTHEhnd
+    password: VRfyW4t8UvYLeGZ8
   rabbitmq:
 #    addresses: 10.211.55.4
     username: admin
@@ -21,6 +21,7 @@ spring:
     password: 12345678
   weather:
     key: d7428a1b805f4e8e9fe9806cb3f39fbe
+    apiHost: me487qq4gv.re.qweatherapi.com
   minio:
     endpoint: 'http://localhost:9000'
     username: 'minio'
