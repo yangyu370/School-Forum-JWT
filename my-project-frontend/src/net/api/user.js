@@ -88,3 +88,5 @@ export const apiUserDetailTotal=(id,success)=>
     get(`/api/admin/user/detail?id=${id}`,success)
 export const apiUserSave=(data,success)=>
     post(`api/admin/user/save`,data,success)
+export const apiUserModifyPassword=(data,success)=>
+    post('api/admin/user/modify-password',data,success)

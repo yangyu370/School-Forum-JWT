@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import {EditPen, User} from "@element-plus/icons-vue";
-import {apiUserList} from "@/net/api/user"
+import {EditPen, Unlock, User} from "@element-plus/icons-vue";
+import {apiUserList,apiUserModifyPassword} from "@/net/api/user"
 import {reactive, watchEffect,ref} from "vue";
 import {useStore} from "@/store"
 import UserEditor from "@/components/UserEditor.vue";
+import {ElMessage, ElMessageBox} from "element-plus";
 const userTable=reactive({
    page: 1,
    size: 10,
@@ -36,6 +37,19 @@ function handleEditUser(row) {
     console.error('editorRef is not available')
   }
 }
+function changePassword({ id, username}) {
+  ElMessageBox.prompt(`您确定要修改用户 ${username} 的密码吗，修改后用户将不能使用原密码登录？`, '修改密码', {
+    inputPattern: /^.{6,20}$/,
+    inputErrorMessage: '密码长度必须在6-20个字符之间',
+    callback: ({ action, value }) => {
+      if(action === 'confirm') {
+        apiUserModifyPassword({id, newPassword: value},
+            () => ElMessage.success('密码修改成功'))
+      }
+    }
+  })
+}
+
 
 </script>
 
@@ -77,6 +91,9 @@ function handleEditUser(row) {
          </el-table-column>
          <el-table-column label="操作" align="center" fixed="right">
              <template #default="{row}">
+               <el-button type="warning" size="small" :icon="Unlock"
+                          @click="changePassword(row)"
+                          :disabled="row.role==='admin'">修改密码</el-button>
                <el-button type="primary" size="small" :icon="EditPen"
                           @click="handleEditUser(row)"
                           :disabled="row.role==='admin'">编辑</el-button>

@@ -186,4 +186,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
          return success ? null : "未知错误,请联系管理员";
 
     }
+
+    @Override
+    public void modifyPassword(int id, String newPassWord) {
+        this.update()
+                .eq("id",id)
+                .set("password",passwordEncoder.encode(newPassWord))
+                .update();
+    }
 }

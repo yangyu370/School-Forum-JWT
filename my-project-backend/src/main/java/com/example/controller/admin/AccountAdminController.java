@@ -1,5 +1,6 @@
 package com.example.controller.admin;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.RestBean;
@@ -58,8 +59,11 @@ public class AccountAdminController {
         return RestBean.success(obj);
     }
     @PostMapping("/save")
-    public RestBean<Void> saveAccount(@RequestBody JSONObject object){
+    public RestBean<Void> saveAccount(@RequestBody JSONObject object,@RequestAttribute(Const.ATTR_USER_ID) int uid ){
          int id=object.getInteger("id");
+         if(uid == id){
+             return RestBean.failure(400,"无法修改自己账号密码");
+         }
          Account account=accountService.findAccountById(id);
          Account save=object.toJavaObject(Account.class);
          HandleBaned(account,save);
@@ -75,6 +79,13 @@ public class AccountAdminController {
         accountPrivacyService.saveOrUpdate(savePrivacy);
          return RestBean.success();
     }
+    @PostMapping("/modify-password")
+    public RestBean<Void> changePassword(@RequestBody JSONObject object){
+        accountService.modifyPassword(object.getInteger("id"),object.getString("newPassword"));
+        return RestBean.success();
+    }
+
+
     private void HandleBaned(Account old,Account current){
            String key= Const.BANNED_BLOCK+old.getId();
            if(!old.isBanned()&&current.isBanned()){
