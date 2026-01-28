@@ -10,6 +10,7 @@ import com.example.mapper.AccountDetailsMapper;
 import com.example.mapper.AccountMapper;
 import com.example.mapper.AccountPrivacyMapper;
 import com.example.service.AccountService;
+import com.example.service.EmailService;
 import com.example.utils.Const;
 import com.example.utils.FlowUtils;
 import jakarta.annotation.Resource;
@@ -35,7 +36,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     @Resource
     FlowUtils flowUtils;
     @Resource
-    AmqpTemplate amqpTemplate;
+    EmailService emailService;
     @Resource
     StringRedisTemplate stringRedisTemplate;
     @Resource
@@ -78,8 +79,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
             }
             Random random = new Random();
             int code=random.nextInt(899999)+100000;
-            Map<String,Object> data=Map.of("type",type,"mail",email,"code",code);
-            amqpTemplate.convertAndSend("mail",data);
+            emailService.sendVerifyEmail(type,email,code);
             stringRedisTemplate.opsForValue()
                     .set(Const.VERIFY_EMAIL_DATA+email,String.valueOf(code),3, TimeUnit.MINUTES);
             return null;
