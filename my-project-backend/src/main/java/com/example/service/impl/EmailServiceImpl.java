@@ -1,5 +1,8 @@
 package com.example.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.dto.EmailRecord;
 import com.example.mapper.EmailRecordMapper;
 import com.example.service.EmailService;
@@ -7,7 +10,7 @@ import jakarta.annotation.Resource;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.List;
 
 @Service
 public class EmailServiceImpl implements EmailService {
@@ -28,5 +31,31 @@ public class EmailServiceImpl implements EmailService {
         };
          recordMapper.insert(emailRecord);
          amqpTemplate.convertAndSend("mail",emailRecord);
+    }
+
+    @Override
+    public List<EmailRecord> listEmailRecord(int page, int size) {
+        QueryWrapper<EmailRecord> wrapper = new QueryWrapper<>();
+        wrapper.orderByDesc("time");
+        Page<EmailRecord> emailPage = recordMapper.selectPage(Page.of(page, size), wrapper);
+        return emailPage.getRecords();
+    }
+
+    @Override
+    public long countEmailRecord() {
+        return recordMapper.selectCount(Wrappers.emptyWrapper());
+    }
+
+    @Override
+    public void resendEmail(int id) {
+        EmailRecord record = recordMapper.selectById(id);
+        if(record == null) {
+            throw new RuntimeException("邮件记录不存在");
+        }
+        // 重置状态为发送中
+        record.setStatus(0);
+        recordMapper.updateById(record);
+        // 重新发送到队列
+        amqpTemplate.convertAndSend("mail", record);
     }
 }
