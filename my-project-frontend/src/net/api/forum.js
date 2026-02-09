@@ -51,7 +51,7 @@ export const apiForumTopicDelete = (id, success) =>
 export const apiAdminTopicList=(page,size,success)=>
     get(`/api/admin/forum/list?page=${page}&size=${size}`,success)
 export const apiAdminSetTop = (tid, status, success) =>
-    post(`/api/admin/forum/set-top?tid=${tid}&status=${status}`, {}, success)
+    post('/api/admin/forum/set-top', {tid, status}, success)
 export const apiAdminDeleteTopic = (tid, success) =>
     get(`/api/admin/forum/Admin-deleteTopic?tid=${tid}`, success)
 export const apiAdminDeleteComment=(id,success)=>

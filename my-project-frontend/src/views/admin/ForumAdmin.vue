@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ChatSquare, Delete, Document, View, Loading, Plus} from "@element-plus/icons-vue";
+import {ChatSquare, Delete, Document, View, Loading, Plus,Lock,Hide} from "@element-plus/icons-vue";
 import {reactive, watchEffect,ref} from "vue";
 import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic,apiForumComments,apiAdminDeleteComment} from "@/net/api/forum"
 import {useStore} from "@/store";
@@ -215,8 +215,8 @@ const editor=ref(false);
            <el-tag type="primary" v-else>普通用户</el-tag>
          </template>
        </el-table-column>
-       <el-table-column label="标题" width="350" prop="title"/>
-       <el-table-column label="创建时间" width="180">
+       <el-table-column label="标题" width="200" prop="title" show-overflow-tooltip/>
+       <el-table-column label="创建时间" width="170" show-overflow-tooltip>
          <template #default="{row}">
            {{new Date(row.time).toLocaleString()}}
          </template>
@@ -235,9 +235,11 @@ const editor=ref(false);
               </el-tag>
             </template>
        </el-table-column>
-       <el-table-column label="操作" width="100" align="center">
+       <el-table-column label="操作" width="250" align="center" fixed="right">
          <template #default="{row}">
            <el-button :icon="View" size="small" type="primary" @click="openEditor(row.id,row.top,row.role)">查看</el-button>
+           <el-button :icon="Lock" size="small" type="warning" >锁定</el-button>
+           <el-button :icon="Hide" size="small" type="info">屏蔽</el-button>
          </template>
        </el-table-column>
     </el-table>
@@ -342,7 +344,6 @@ const editor=ref(false);
     <AnnouncementEditor :show="editor" @close="editor=false" @success="editor=false"/>
   </div>
 </template>
-
 <style scoped>
 .forum-admin {
   .title{

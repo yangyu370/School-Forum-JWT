@@ -228,6 +228,19 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     }
 
     @Override
+    public JSONObject listAllTopicByPage(int page, int size) {
+        Page<Topic> topicPage=baseMapper.selectPage(Page.of(page,size),
+                Wrappers.<Topic>query()
+                        .select("id","title","uid","time","top","content","type")
+                        .orderByDesc("time"));
+        List<TopicPreviewVO> list=topicPage.getRecords().stream().map(this::ResolveToPreview).toList();
+        JSONObject object=new JSONObject();
+        object.put("total",topicPage.getTotal());
+        object.put("list",list);
+        return object;
+    }
+
+    @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;
         List<TopicPreviewVO> list=cacheUtils.TakeListFromCache(key,TopicPreviewVO.class);
@@ -352,21 +365,40 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     }
     private TopicPreviewVO resolveToPreview(Topic topic){
         TopicPreviewVO vo=new TopicPreviewVO();
-        BeanUtils.copyProperties(accountMapper.selectById(topic.getUid()),vo);
-        BeanUtils.copyProperties(topic,vo);
+        Account account = accountMapper.selectById(topic.getUid());
+        if (account != null) {
+            BeanUtils.copyProperties(account, vo);
+        }
+        if(topic != null) {
+            vo.setId(topic.getId());
+            vo.setTitle(topic.getTitle());
+            vo.setUid(topic.getUid());
+            vo.setType(topic.getType());
+            vo.setTime(topic.getTime());
+            vo.setTop(topic.getTop() != null && topic.getTop());
+        }
         vo.setLike(baseMapper.InteractCount(topic.getId(),"like"));
         vo.setCollect(baseMapper.InteractCount(topic.getId(),"collect"));
         List<String> images=new ArrayList<>();
         StringBuilder previewText=new StringBuilder();
-        JSONArray ops= JSON.parseObject(topic.getContent()).getJSONArray("ops");
-        for(Object op:ops){
-            Object insert=JSONObject.from(op).get("insert");
-            if(insert instanceof String){
-                if(previewText.length()>=300) continue;
-                previewText.append(insert);
-            }else if(insert instanceof Map<?,?> map){
-                Optional.ofNullable(map.get("image"))
-                        .ifPresent(obj->images.add(obj.toString()));
+        if (topic.getContent() != null) {
+            try {
+                JSONObject contentJson = JSON.parseObject(topic.getContent());
+                JSONArray ops = contentJson.getJSONArray("ops");
+                if (ops != null) {
+                    for(Object op:ops){
+                        Object insert=JSONObject.from(op).get("insert");
+                        if(insert instanceof String){
+                            if(previewText.length()>=300) continue;
+                            previewText.append(insert);
+                        }else if(insert instanceof Map<?,?> map){
+                            Optional.ofNullable(map.get("image"))
+                                    .ifPresent(obj->images.add(obj.toString()));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // JSON 解析失败，忽略错误
             }
         }
        vo.setText(previewText.length()>300?previewText.toString().substring(0,300):previewText.toString());

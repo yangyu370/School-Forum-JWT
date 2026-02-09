@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.entity.dto.Interact;
@@ -32,4 +33,5 @@ public interface TopicService extends IService<Topic> {
    void TopTopic(int tid,boolean status);
    void AdminDeleteTopic(int tid);
    String AdminDeleteComment(int id);
+   JSONObject listAllTopicByPage(int page,int size);
 }

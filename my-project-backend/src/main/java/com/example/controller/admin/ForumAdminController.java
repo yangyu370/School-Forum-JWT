@@ -3,6 +3,7 @@ package com.example.controller.admin;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.entity.PageRestBean;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Topic;
 import com.example.entity.vo.request.AnnouncementCreateVO;
@@ -15,6 +16,7 @@ import com.example.utils.ControllerUtils;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 //todo 4.筛选查看不同板块的帖子
@@ -30,26 +32,21 @@ public class ForumAdminController {
     @Resource
     CacheUtils cacheUtils;
     @GetMapping("/list")
-    public RestBean<JSONObject> list(int page,int size){
-        JSONObject obj=new JSONObject();
-        QueryWrapper<Topic> wrapper = new QueryWrapper<>();
-        wrapper.orderByDesc("time");
-        Page<Topic> topicPage = topicService.page(Page.of(page, size), wrapper);
-        List<TopicPreviewVO> list=topicPage.getRecords()
-                .stream()
-                .map(topic -> topicService.ResolveToPreview(topic))
-                .toList();
-        obj.put("list",list);
-        obj.put("total",topicService.count());
-        return RestBean.success(obj);
+    public PageRestBean<TopicPreviewVO> list(@RequestParam int page,@RequestParam int size){
+       JSONObject result=topicService.listAllTopicByPage(page,size);
+       return PageRestBean.success(result.getJSONArray("list").toList(TopicPreviewVO.class),
+               result.getIntValue("total"),
+               page);
     }
     @PostMapping("/set-top")
-    public RestBean<Void> topTopic(int tid,boolean status){
-        Topic topic=topicService.getById(tid);
-        if(topic==null){
-            return RestBean.failure(404,"该帖子不存在或已删除");
+    public RestBean<Void> topTopic(@RequestBody JSONObject json){
+        Integer tid = json.getInteger("tid");
+        Boolean status = json.getBoolean("status");
+        Topic topic = topicService.getById(tid);
+        if(topic == null){
+            return RestBean.failure(404, "该帖子不存在或已删除");
         }
-        topicService.TopTopic(tid,status);
+        topicService.TopTopic(tid, status);
         cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE + "*");
         return RestBean.success();
     }
