@@ -77,4 +77,13 @@ public class ForumAdminController {
     public RestBean<Void> createAnnouncement(@RequestBody AnnouncementCreateVO vo, @RequestAttribute("id") int uid){
        return utils.messageHandler(()->announcementService.CreateAnnouncement(vo,uid));
    }
+    @PostMapping("/locked")
+    public RestBean<Void> setLocked(@RequestBody JSONObject object){
+        topicService.setTopicLocked(
+                object.getIntValue("id"),
+                object.getBooleanValue("status")
+        );
+        cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE + "*");
+        return RestBean.success();
+    }
 }

@@ -60,3 +60,5 @@ export const apiAdminCreateAnnouncement=(data,success)=>
     post('/api/admin/forum/create-announcement',data,success)
 export const apiAnnouncementList=(success)=>
     get('/api/forum/list-announcement',success)
+export const apiForumTopicLocked=(id, status, success) =>
+    post('/api/admin/forum/locked', {id, status}, success)

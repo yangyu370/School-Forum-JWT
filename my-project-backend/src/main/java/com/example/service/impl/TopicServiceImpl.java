@@ -94,12 +94,14 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
             return "文章内容过长，发文失败!";
         }
         if(!types.contains(vo.getType())) return "文章类型非法";
-        baseMapper.update(null,Wrappers.<Topic>update()
-                .eq("uid",uid)
-                .eq("id",vo.getId()).set("title",vo.getTitle())
-                .set("content",vo.getContent().toString())
-                .set("type",vo.getType()).set("time",new Date()));
-        return null;
+        int result = baseMapper.update(null, Wrappers.<Topic>update()
+                .eq("uid", uid)
+                .eq("id", vo.getId())
+                .eq("locked",0)
+                .set("title", vo.getTitle())
+                .set("content", vo.getContent().toString())
+                .set("type", vo.getType()).set("time", new Date()));
+        return result >0 ? null : "文章被锁定无法进行修改";
     }
     @Override
     public String createComment(int uid, AddCommentVO vo) {
@@ -231,13 +233,21 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     public JSONObject listAllTopicByPage(int page, int size) {
         Page<Topic> topicPage=baseMapper.selectPage(Page.of(page,size),
                 Wrappers.<Topic>query()
-                        .select("id","title","uid","time","top","content","type")
+                        .select("id","title","uid","time","top","content","type","locked")
                         .orderByDesc("time"));
         List<TopicPreviewVO> list=topicPage.getRecords().stream().map(this::ResolveToPreview).toList();
         JSONObject object=new JSONObject();
         object.put("total",topicPage.getTotal());
         object.put("list",list);
         return object;
+    }
+
+    @Override
+    public void setTopicLocked(int id, boolean locked) {
+        baseMapper.update(null,Wrappers.<Topic>update()
+                .eq("id",id)
+                .set("locked",locked)
+        );
     }
 
     @Override
@@ -376,6 +386,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
             vo.setType(topic.getType());
             vo.setTime(topic.getTime());
             vo.setTop(topic.getTop() != null && topic.getTop());
+            vo.setLocked(topic.getLocked() != null ? topic.getLocked() : 0);
         }
         vo.setLike(baseMapper.InteractCount(topic.getId(),"like"));
         vo.setCollect(baseMapper.InteractCount(topic.getId(),"collect"));

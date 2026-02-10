@@ -1,4 +1,5 @@
 package com.example.controller;
+import com.alibaba.fastjson2.JSONObject;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Account;
 import com.example.entity.dto.Interact;
@@ -129,4 +130,5 @@ public class ForumController {
     public RestBean<List<AnnouncementVO>> ListAnnouncement(){
         return RestBean.success(announcementService.listAnnouncement());
     }
+
 }

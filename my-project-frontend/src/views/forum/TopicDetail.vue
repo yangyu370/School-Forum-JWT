@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {useRoute} from "vue-router";
+import {Lock} from "@element-plus/icons-vue"
 import router from "@/router";
 import {
   apiForumCommentDelete,
@@ -130,6 +131,10 @@ function deleteTopic(){
              返回列表
            </el-button>
            <div style="text-align: center;flex: 1;font-weight: bold;font-size: 20px">
+             <el-tag size="small" style="margin-right:10px" effect="dark" type="warning" v-if="topic.data.locked">
+               <el-icon><Lock/></el-icon>
+               已锁定
+             </el-tag>
              <topic-tag :type="topic.data.type"></topic-tag>
              <span style="margin-left: 5px;transform: translateY(3px) ">{{topic.data.title}}</span>
            </div>
@@ -169,7 +174,12 @@ function deleteTopic(){
              </div>
            </div>
            <div style="text-align: right;margin-top: 30px">
-             <interact-button check-name="编辑帖子"  color="dodgerblue" :checked="true" @check="edit=true" style="margin-right: 20px" v-if="store.user.id===topic.data.user.id">
+             <interact-button check-name="编辑帖子"
+                              color="dodgerblue"
+                              :checked="true"
+                              @check="edit=true"
+                              :disabled="topic.data.locked"
+                              style="margin-right: 20px" v-if="store.user.id===topic.data.user.id">
                <el-icon><EditPen/></el-icon>
              </interact-button>
                <interact-button name="点赞" check-name="已点赞" color="pink" @check="interact('like','点赞')"

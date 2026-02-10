@@ -11,7 +11,7 @@ import {
   Document,
   Edit,
   EditPen, FolderOpened,
-  Link,
+  Link, Lock,
   Microphone,
   Picture, Star
 } from "@element-plus/icons-vue";
@@ -162,6 +162,10 @@ const announcement=ref(false)
                    </div>
                  </div>
                  <div style="display:flex">
+                   <el-tag size="small" style="margin-right:10px" effect="dark" type="warning" v-if="item.locked">
+                     <el-icon><Lock/></el-icon>
+                     已锁定
+                   </el-tag>
                   <topic-tag :type="item.type"/>
                    <span style="font-weight: bold;margin-left: 7px;transform: translateY(-1.5px)">{{item.title}}</span>
                  </div>

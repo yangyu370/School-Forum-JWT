@@ -20,4 +20,5 @@ public class TopicPreviewVO {
     int collect;
     boolean top;
     String role;
+    int locked;
 }
