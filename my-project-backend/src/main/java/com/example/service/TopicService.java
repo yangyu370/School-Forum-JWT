@@ -35,4 +35,5 @@ public interface TopicService extends IService<Topic> {
    String AdminDeleteComment(int id);
    JSONObject listAllTopicByPage(int page,int size);
    void setTopicLocked(int id,boolean locked);
+   void setTopicInvisible(int id,boolean invisible);
 }

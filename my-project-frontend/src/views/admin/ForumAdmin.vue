@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {ChatSquare, Delete, Document, View, Loading, Plus,Lock,Hide} from "@element-plus/icons-vue";
+import {ChatSquare, Delete, Document, View, Loading, Plus, Lock, Hide, Unlock} from "@element-plus/icons-vue";
 import {reactive, watchEffect,ref} from "vue";
-import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic,apiForumComments,apiAdminDeleteComment,apiForumTopicLocked} from "@/net/api/forum"
+import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic,apiForumComments,apiAdminDeleteComment,apiForumTopicLocked,apiForumTopicInvisible} from "@/net/api/forum"
 import {useStore} from "@/store";
 import ColorDot from "@/components/ColorDot.vue";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
@@ -113,6 +113,16 @@ const lockTopic=(id,status) =>{
        item.locked = status
      }
    })
+}
+const invisibleTopic=(id,status) =>{
+  const action = status ? '屏蔽' : '取消'
+  apiForumTopicInvisible(id, status, ()=>{
+    ElMessage.success(`帖子${action}成功`)
+    const item = listTable.data.find(t => t.id === id)
+    if (item) {
+      item.invisible = status
+    }
+  })
 }
 const comment=reactive({
   display:false,
@@ -249,9 +259,10 @@ const editor=ref(false);
        <el-table-column label="操作" width="250" align="center" fixed="right">
          <template #default="{row}">
            <el-button :icon="View" size="small" type="primary" @click="openEditor(row.id,row.top,row.role)">查看</el-button>
-           <el-button :icon="Lock" size="small" type="warning" @click="lockTopic(row.id,false)" v-if="row.locked">解锁</el-button>
+           <el-button :icon="Unlock" size="small" type="warning" @click="lockTopic(row.id,false)" v-if="row.locked">解锁</el-button>
            <el-button :icon="Lock" size="small" type="warning" @click="lockTopic(row.id,true)" plain v-else>锁定</el-button>
-           <el-button :icon="Hide" size="small" type="info">屏蔽</el-button>
+           <el-button :icon="View" size="small" type="info" @click="invisibleTopic(row.id,false)" v-if="row.invisible">取消</el-button>
+           <el-button :icon="Hide" size="small" type="info" @click="invisibleTopic(row.id,true)" plain v-else>屏蔽</el-button>
          </template>
        </el-table-column>
     </el-table>

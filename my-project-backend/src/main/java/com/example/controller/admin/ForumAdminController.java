@@ -86,4 +86,13 @@ public class ForumAdminController {
         cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE + "*");
         return RestBean.success();
     }
+    @PostMapping("/invisible")
+    public RestBean<Void> setInvisible(@RequestBody JSONObject object){
+        topicService.setTopicInvisible(
+                object.getIntValue("id"),
+                object.getBooleanValue("status")
+        );
+        cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE + "*");
+        return RestBean.success();
+    }
 }

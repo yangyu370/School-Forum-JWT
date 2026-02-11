@@ -233,7 +233,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     public JSONObject listAllTopicByPage(int page, int size) {
         Page<Topic> topicPage=baseMapper.selectPage(Page.of(page,size),
                 Wrappers.<Topic>query()
-                        .select("id","title","uid","time","top","content","type","locked")
+                        .select("id","title","uid","time","top","content","type","locked","invisible")
                         .orderByDesc("time"));
         List<TopicPreviewVO> list=topicPage.getRecords().stream().map(this::ResolveToPreview).toList();
         JSONObject object=new JSONObject();
@@ -251,6 +251,15 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     }
 
     @Override
+    public void setTopicInvisible(int id, boolean invisible) {
+        baseMapper.update(null,Wrappers.<Topic>update()
+                .eq("id",id)
+                .set("invisible",invisible)
+        );
+        cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE+"*");
+    }
+
+    @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;
         List<TopicPreviewVO> list=cacheUtils.TakeListFromCache(key,TopicPreviewVO.class);
@@ -259,9 +268,14 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         }
         Page<Topic> page=Page.of(pageNumber,10);
         if(type==0){
-           baseMapper.selectPage(page,Wrappers.<Topic>query().orderByDesc("time"));
+           baseMapper.selectPage(page,Wrappers.<Topic>query()
+                   .eq("invisible",0)
+                   .orderByDesc("time"));
         }else{
-            baseMapper.selectPage(page,Wrappers.<Topic>query().eq("type",type).orderByDesc("time"));
+            baseMapper.selectPage(page,Wrappers.<Topic>query()
+                    .eq("invisible",0)
+                    .eq("type",type)
+                     .orderByDesc("time"));
         }
         List<Topic> topics=page.getRecords();
         if(topics.isEmpty()) return null;
@@ -287,8 +301,10 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         TopicDetailVO vo=new TopicDetailVO();
         Topic topic=baseMapper.selectById(tid);
         if (topic == null) {
-            return null;  // 返回 null，让 Controller 层处理
+            return null;
         }
+        if(topic.getInvisible() == 1 && topic.getUid() != uid)
+            return null;
         BeanUtils.copyProperties(topic,vo);
         TopicDetailVO.Interact interact=new TopicDetailVO.Interact(
                 hasInteract(tid, uid, "like"),
@@ -387,6 +403,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
             vo.setTime(topic.getTime());
             vo.setTop(topic.getTop() != null && topic.getTop());
             vo.setLocked(topic.getLocked() != null ? topic.getLocked() : 0);
+            vo.setInvisible(topic.getInvisible() != null ? topic.getInvisible() : 0);
         }
         vo.setLike(baseMapper.InteractCount(topic.getId(),"like"));
         vo.setCollect(baseMapper.InteractCount(topic.getId(),"collect"));

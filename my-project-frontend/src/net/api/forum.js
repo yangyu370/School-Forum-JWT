@@ -62,3 +62,5 @@ export const apiAnnouncementList=(success)=>
     get('/api/forum/list-announcement',success)
 export const apiForumTopicLocked=(id, status, success) =>
     post('/api/admin/forum/locked', {id, status}, success)
+export const apiForumTopicInvisible=(id,status,success) =>
+    post('/api/admin/forum/invisible',{id,status},success)

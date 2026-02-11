@@ -19,4 +19,5 @@ public class Topic {
     Date time;
     Boolean top;
     Integer locked;
+    Integer invisible;
 }

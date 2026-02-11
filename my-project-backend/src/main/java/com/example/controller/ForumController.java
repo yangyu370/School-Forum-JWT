@@ -75,7 +75,7 @@ public class ForumController {
     }
 
     @GetMapping("/topic")
-    public RestBean<TopicDetailVO> Topic(@RequestParam @Min(0) int tid, @RequestAttribute("id") int id) {
+    public RestBean<TopicDetailVO> Topic(@RequestParam @Min(0) int tid, @RequestAttribute(value = "id") Integer id) {
         TopicDetailVO detail = topicService.getTopicDetail(tid, id);
         if (detail == null) {
             return RestBean.failure(404, "帖子不存在或已被删除");

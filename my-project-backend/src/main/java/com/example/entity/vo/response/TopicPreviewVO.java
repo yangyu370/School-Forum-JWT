@@ -21,4 +21,5 @@ public class TopicPreviewVO {
     boolean top;
     String role;
     int locked;
+    Integer invisible;
 }
