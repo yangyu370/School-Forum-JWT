@@ -64,3 +64,7 @@ export const apiForumTopicLocked=(id, status, success) =>
     post('/api/admin/forum/locked', {id, status}, success)
 export const apiForumTopicInvisible=(id,status,success) =>
     post('/api/admin/forum/invisible',{id,status},success)
+export const apiForumProhibitedList= (success) =>
+    get('/api/admin/forum/prohibited-list',success)
+export const apiForumSaveProhibitedList=(data,success)=>
+    post('/api/admin/forum/prohibited-save',data,success)

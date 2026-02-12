@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {ChatSquare, Delete, Document, View, Loading, Plus, Lock, Hide, Unlock} from "@element-plus/icons-vue";
 import {reactive, watchEffect,ref} from "vue";
-import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,apiAdminDeleteTopic,apiForumComments,apiAdminDeleteComment,apiForumTopicLocked,apiForumTopicInvisible} from "@/net/api/forum"
+import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,
+  apiAdminDeleteTopic,apiForumComments,apiAdminDeleteComment,
+  apiForumTopicLocked,apiForumTopicInvisible,apiForumProhibitedList,apiForumSaveProhibitedList} from "@/net/api/forum"
 import {useStore} from "@/store";
 import ColorDot from "@/components/ColorDot.vue";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
@@ -13,6 +15,7 @@ const listTable=reactive({
   total: 0,
   data:[]
 })
+const prohibitedWords=ref('')
 const store=useStore()
 store.loadForumTypes()
 watchEffect(()=>apiAdminTopicList(listTable.page,listTable.size,data => {
@@ -133,6 +136,12 @@ const comment=reactive({
   temp:[],
   hasMore:true
 })
+const saveProhibitedWords=()=>{
+    const list=prohibitedWords.value.split(',')
+    apiForumSaveProhibitedList(list,()=>{
+      ElMessage.success("违禁词列表更新成功")
+    })
+}
 function openComment(id){
   comment.display=true;
   comment.loading=true;
@@ -198,10 +207,10 @@ function deleteComment(id){
         })
       }
   ).catch(() => {
-
   })
 }
 const editor=ref(false);
+apiForumProhibitedList(data=>prohibitedWords.value=data.join(','))
 </script>
 <template>
   <div class="forum-admin">
@@ -270,6 +279,18 @@ const editor=ref(false);
                    :total="listTable.total"
                    v-model:current-page="listTable.page"
                    v-model:page-size="listTable.size"/>
+    <div class="prohibited-input">
+      <div class="title">
+        违禁词管理
+      </div>
+      <div class="desc">
+        所有存在违禁词的帖子和评论都将被限制，使用逗号隔开
+      </div>
+        <el-input type="textarea" :rows="8" v-model="prohibitedWords"/>
+      <div style="text-align: right;margin-top:20px">
+        <el-button type="primary" @click="saveProhibitedWords">保存违禁词列表</el-button>
+      </div>
+    </div>
     <el-drawer v-model="topic.display" size="30%" class="topic-drawer">
        <template #header>
          <div>
@@ -471,7 +492,9 @@ const editor=ref(false);
     font-size: 13px;
   }
 }
-
+.prohibited-input{
+  margin-top: 50px;
+}
 /* 只针对 topic-drawer 和 comment-drawer 的样式，不影响 AnnouncementEditor */
 :deep(.topic-drawer.el-drawer),
 :deep(.comment-drawer.el-drawer) {

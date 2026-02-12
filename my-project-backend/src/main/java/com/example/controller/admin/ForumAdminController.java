@@ -1,8 +1,7 @@
 package com.example.controller.admin;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.PageRestBean;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Topic;
@@ -13,10 +12,10 @@ import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
 import com.example.utils.Const;
 import com.example.utils.ControllerUtils;
+import com.example.utils.ProhibitedUtils;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 //todo 4.筛选查看不同板块的帖子
@@ -31,6 +30,8 @@ public class ForumAdminController {
     AnnouncementService announcementService;
     @Resource
     CacheUtils cacheUtils;
+    @Resource
+    ProhibitedUtils prohibitedUtils;
     @GetMapping("/list")
     public PageRestBean<TopicPreviewVO> list(@RequestParam int page,@RequestParam int size){
        JSONObject result=topicService.listAllTopicByPage(page,size);
@@ -95,4 +96,13 @@ public class ForumAdminController {
         cacheUtils.deleteFromCachePattern(Const.FORUM_TOPIC_PREVIEW_CACHE + "*");
         return RestBean.success();
     }
-}
+    @GetMapping("/prohibited-list")
+    public RestBean<List<String>> getProhibitedList(){
+        return RestBean.success(prohibitedUtils.getProhibitedWords());
+    }
+    @PostMapping("/prohibited-save")
+    public RestBean<Void> saveProhibitedList(@RequestBody JSONArray array){
+        prohibitedUtils.saveProhibitedWords(array.toList(String.class));
+        return RestBean.success();
+    }
+ }

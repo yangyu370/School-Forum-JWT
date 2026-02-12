@@ -20,6 +20,7 @@ import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
 import com.example.utils.Const;
 import com.example.utils.FlowUtils;
+import com.example.utils.ProhibitedUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
@@ -58,6 +59,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     private TopicMapper topicMapper;
     @Resource
     AccountService accountService;
+    @Resource
+    ProhibitedUtils prohibitedUtils;
     @PostConstruct
     public void initTypes() {
         this.types = this.listTypes().stream().map(TopicType::getId).collect(Collectors.toSet());
@@ -76,6 +79,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         String key= Const.FORUM_TOPIC_COUNTER + uid;
         if(!flowUtils.limitPeriodCounterCheck(key,5,3600))
             return "发文频繁,请稍后再试";
+        if(prohibitedUtils.containsProhibitedWord(vo.getContent()))
+            return "包含违禁词，发文失败！";
         Topic topic=new Topic();
         BeanUtils.copyProperties(vo,topic);
         topic.setContent(vo.getContent().toJSONString());
@@ -93,6 +98,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         if(!textLimitCheck(vo.getContent(),20000)){
             return "文章内容过长，发文失败!";
         }
+        if(prohibitedUtils.containsProhibitedWord(vo.getContent()))
+            return "包含违禁词，发文失败！";
         if(!types.contains(vo.getType())) return "文章类型非法";
         int result = baseMapper.update(null, Wrappers.<Topic>update()
                 .eq("uid", uid)
@@ -111,6 +118,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
         String key=Const.FORUM_TOPIC_COMMENT_COUNTER + uid;
         if(!flowUtils.limitPeriodCounterCheck(key,2,60))
             return "发表评论频繁,请稍后再试";
+        if(prohibitedUtils.containsProhibitedWord(vo.getContent()))
+            return "包含违禁词，发文失败！";
        TopicComment comment=new TopicComment();
        comment.setUid(uid);
        BeanUtils.copyProperties(vo,comment);
