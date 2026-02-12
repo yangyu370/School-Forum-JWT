@@ -33,7 +33,7 @@ public interface TopicService extends IService<Topic> {
    void TopTopic(int tid,boolean status);
    void AdminDeleteTopic(int tid);
    String AdminDeleteComment(int id);
-   JSONObject listAllTopicByPage(int page,int size);
+   JSONObject listAllTopicByPage(int page,int size,String keyword);
    void setTopicLocked(int id,boolean locked);
    void setTopicInvisible(int id,boolean invisible);
 }

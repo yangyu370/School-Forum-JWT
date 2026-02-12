@@ -48,8 +48,8 @@ export const apiForumCollectDelete = (tid, success) =>
 export const apiForumTopicDelete = (id, success) =>
     get(`/api/forum/delete-topic?id=${id}`, success)
 
-export const apiAdminTopicList=(page,size,success)=>
-    get(`/api/admin/forum/list?page=${page}&size=${size}`,success)
+export const apiAdminTopicList=(page,size,keyword,success)=>
+    get(`/api/admin/forum/list?page=${page}&size=${size}&keyword=${keyword}`,success)
 export const apiAdminSetTop = (tid, status, success) =>
     post('/api/admin/forum/set-top', {tid, status}, success)
 export const apiAdminDeleteTopic = (tid, success) =>

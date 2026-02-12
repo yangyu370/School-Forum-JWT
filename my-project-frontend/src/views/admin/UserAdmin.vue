@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {EditPen, Unlock, User} from "@element-plus/icons-vue";
+import {EditPen, Unlock, User, Search} from "@element-plus/icons-vue";
 import {apiUserList,apiUserModifyPassword} from "@/net/api/user"
 import {reactive, watchEffect,ref} from "vue";
 import {useStore} from "@/store"
@@ -12,9 +12,17 @@ const userTable=reactive({
    data:[]
 })
 const store=useStore()
-const  editorRef=ref()
+const editorRef=ref()
+const keyword=ref('')
+const searchText=ref('')
+const refreshList=()=>{
+  apiUserList(userTable.page,userTable.size,keyword.value,data=>{
+    userTable.data=data.list;
+    userTable.total=data.total;
+  })
+}
 
-watchEffect(()=>apiUserList(userTable.page,userTable.size,data => {
+watchEffect(()=>apiUserList(userTable.page,userTable.size,keyword.value,data => {
    userTable.total=data.total;
    userTable.data=data.list;
 }))
@@ -55,12 +63,28 @@ function changePassword({ id, username}) {
 
 <template>
  <div class="user-admin">
-    <div class="title">
-      <el-icon><User/></el-icon>
-      论坛用户列表
-    </div>
-    <div class="desc">
-      管理论坛中所有的用户，包括账号信息，封禁和禁言处理。
+    <div style="display: flex;justify-content: space-between;align-items: end">
+      <div>
+        <div class="title">
+          <el-icon><User/></el-icon>
+          论坛用户列表
+        </div>
+        <div class="desc">
+          管理论坛中所有的用户，包括账号信息，封禁和禁言处理。
+        </div>
+      </div>
+      <div class="search-container">
+        <el-input 
+          v-model="searchText"
+          placeholder="搜索用户名或邮箱..." 
+          clearable
+          class="search-input">
+          <template #prefix>
+            <el-icon><Search/></el-icon>
+          </template>
+        </el-input>
+        <el-button type="primary" @click="keyword=searchText">搜索</el-button>
+      </div>
     </div>
     <el-table :data="userTable.data" height="320">
          <el-table-column prop="id" label="编号 " width="80"/>
@@ -131,6 +155,30 @@ function changePassword({ id, username}) {
   }
   :deep(.el-drawer__header){
     margin-bottom: 0;
+  }
+  
+  .search-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .search-input {
+    width: 300px;
+  }
+  
+  .search-input :deep(.el-input__wrapper) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .search-input :deep(.el-input__wrapper:hover) {
+    box-shadow: 0 2px 12px rgba(64, 158, 255, 0.2);
+  }
+  
+  .search-input :deep(.el-input__wrapper.is-focus) {
+    box-shadow: 0 2px 12px rgba(64, 158, 255, 0.3);
   }
 }
 :deep(.el-drawer){

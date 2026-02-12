@@ -239,10 +239,11 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     }
 
     @Override
-    public JSONObject listAllTopicByPage(int page, int size) {
+    public JSONObject listAllTopicByPage(int page, int size,String keyword) {
         Page<Topic> topicPage=baseMapper.selectPage(Page.of(page,size),
                 Wrappers.<Topic>query()
                         .select("id","title","uid","time","top","content","type","locked","invisible")
+                        .like(keyword!=null,"title","%"+keyword+"%")
                         .orderByDesc("time"));
         List<TopicPreviewVO> list=topicPage.getRecords().stream().map(this::ResolveToPreview).toList();
         JSONObject object=new JSONObject();

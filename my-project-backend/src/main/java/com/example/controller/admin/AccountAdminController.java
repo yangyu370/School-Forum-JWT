@@ -2,6 +2,8 @@ package com.example.controller.admin;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Account;
@@ -36,9 +38,13 @@ public class AccountAdminController {
     @Value("${spring.security.jwt.expire}")
     private int expire;
     @GetMapping("/list")
-    public RestBean<JSONObject> list(int page,int size){
+    public RestBean<JSONObject> list(@RequestParam int page,@RequestParam int size,
+                                     @RequestParam(required = false) String keyword){
         JSONObject object=new JSONObject();
-        List<AccountVO> list=accountService.page(Page.of(page,size))
+        Page<Account> accountPage=accountService.page(Page.of(page,size), Wrappers
+                .<Account>query().eq(keyword!=null,"id",keyword).or()
+                .like(keyword!=null,"username","%"+keyword+"%"));
+        List<AccountVO> list=accountPage
                 .getRecords()
                 .stream()
                 .map(a->{
@@ -47,7 +53,7 @@ public class AccountAdminController {
                     return vo;
                 })
                 .toList();
-        object.put("total",accountService.count());
+        object.put("total",accountPage.getTotal());
         object.put("list",list);
         return RestBean.success(object);
     }

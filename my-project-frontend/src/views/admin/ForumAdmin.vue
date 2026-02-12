@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ChatSquare, Delete, Document, View, Loading, Plus, Lock, Hide, Unlock} from "@element-plus/icons-vue";
+import {ChatSquare, Delete, Document, View, Loading, Plus, Lock, Hide, Unlock, Search} from "@element-plus/icons-vue";
 import {reactive, watchEffect,ref} from "vue";
 import {apiAdminTopicList,apiForumTopic,apiAdminSetTop,
   apiAdminDeleteTopic,apiForumComments,apiAdminDeleteComment,
@@ -16,9 +16,17 @@ const listTable=reactive({
   data:[]
 })
 const prohibitedWords=ref('')
+const keyword=ref('')
+const searchText=ref('')
+const refreshList=()=>{
+  apiAdminTopicList(listTable.page,listTable.size,keyword.value,data=>{
+    listTable.data=data.list;
+    listTable.total=data.total;
+  })
+}
 const store=useStore()
 store.loadForumTypes()
-watchEffect(()=>apiAdminTopicList(listTable.page,listTable.size,data => {
+watchEffect(()=>apiAdminTopicList(listTable.page,listTable.size,keyword.value,data => {
   listTable.total=data.total;
   listTable.data=data.list;
 }))
@@ -223,6 +231,18 @@ apiForumProhibitedList(data=>prohibitedWords.value=data.join(','))
         <div class="desc">
           管理论坛中的所有帖子，包括帖子的查看，删除以及设置置顶帖子
         </div>
+      </div>
+      <div class="search-container">
+        <el-input 
+          v-model="searchText"
+          placeholder="搜索帖子标题..." 
+          clearable
+          class="search-input">
+          <template #prefix>
+            <el-icon><Search/></el-icon>
+          </template>
+        </el-input>
+        <el-button type="primary" @click="keyword=searchText">搜索</el-button>
       </div>
       <div style="margin-bottom: 20px">
         <el-button :icon="Plus" type="primary" @click="editor=true">发布论坛公告</el-button>
@@ -490,6 +510,30 @@ apiForumProhibitedList(data=>prohibitedWords.value=data.join(','))
     padding: 20px;
     color: #909399;
     font-size: 13px;
+  }
+  
+  .search-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .search-input {
+    width: 300px;
+  }
+  
+  .search-input :deep(.el-input__wrapper) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .search-input :deep(.el-input__wrapper:hover) {
+    box-shadow: 0 2px 12px rgba(64, 158, 255, 0.2);
+  }
+  
+  .search-input :deep(.el-input__wrapper.is-focus) {
+    box-shadow: 0 2px 12px rgba(64, 158, 255, 0.3);
   }
 }
 .prohibited-input{
