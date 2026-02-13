@@ -36,4 +36,5 @@ public interface TopicService extends IService<Topic> {
    JSONObject listAllTopicByPage(int page,int size,String keyword);
    void setTopicLocked(int id,boolean locked);
    void setTopicInvisible(int id,boolean invisible);
+   List<Topic> listTopicByUser(int uid);
 }

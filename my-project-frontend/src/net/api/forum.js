@@ -68,3 +68,5 @@ export const apiForumProhibitedList= (success) =>
     get('/api/admin/forum/prohibited-list',success)
 export const apiForumSaveProhibitedList=(data,success)=>
     post('/api/admin/forum/prohibited-save',data,success)
+export const apiForumUserTopic=(success)=>
+    get('/api/forum/user-topic',success)

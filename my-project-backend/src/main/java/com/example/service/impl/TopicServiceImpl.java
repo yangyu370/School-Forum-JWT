@@ -270,6 +270,11 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper,Topic >  implement
     }
 
     @Override
+    public List<Topic> listTopicByUser(int uid) {
+        return baseMapper.selectList(Wrappers.<Topic>query().eq("uid",uid));
+    }
+
+    @Override
     public List<TopicPreviewVO> listTopicByPage(int pageNumber, int type) {
         String key=Const.FORUM_TOPIC_PREVIEW_CACHE+pageNumber+":"+type;
         List<TopicPreviewVO> list=cacheUtils.TakeListFromCache(key,TopicPreviewVO.class);

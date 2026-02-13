@@ -51,6 +51,11 @@ const router=createRouter({
                     component:()=>import("@/views/settings/UserSetting.vue")
                 },
                 {
+                    path:'forum-setting',
+                    name:'forum-setting',
+                    component:()=>import("@/views/settings/ForumSetting.vue")
+                },
+                {
                     path:'privacy-setting',
                     name:'privacy-setting',
                     component:()=>import("@/views/settings/PrivacySetting.vue")

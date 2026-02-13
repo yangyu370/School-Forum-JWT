@@ -3,6 +3,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.example.entity.RestBean;
 import com.example.entity.dto.Account;
 import com.example.entity.dto.Interact;
+import com.example.entity.dto.Topic;
 import com.example.entity.dto.TopicType;
 import com.example.entity.vo.request.AddCommentVO;
 import com.example.entity.vo.request.TopicCreateVO;
@@ -12,6 +13,7 @@ import com.example.service.AccountService;
 import com.example.service.AnnouncementService;
 import com.example.service.TopicService;
 import com.example.service.WeatherService;
+import com.example.utils.Const;
 import com.example.utils.ControllerUtils;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
@@ -130,5 +132,8 @@ public class ForumController {
     public RestBean<List<AnnouncementVO>> ListAnnouncement(){
         return RestBean.success(announcementService.listAnnouncement());
     }
-
+    @GetMapping("/user-topic")
+    public RestBean<List<Topic>> userTopic(@RequestAttribute("id") int uid){
+       return RestBean.success(topicService.listTopicByUser(uid));
+    }
 }

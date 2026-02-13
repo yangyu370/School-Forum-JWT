@@ -15,12 +15,7 @@ const store=useStore()
 const editorRef=ref()
 const keyword=ref('')
 const searchText=ref('')
-const refreshList=()=>{
-  apiUserList(userTable.page,userTable.size,keyword.value,data=>{
-    userTable.data=data.list;
-    userTable.total=data.total;
-  })
-}
+
 
 watchEffect(()=>apiUserList(userTable.page,userTable.size,keyword.value,data => {
    userTable.total=data.total;

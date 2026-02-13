@@ -6,7 +6,7 @@ import {
   Document, Files,
   Location, Lock, Monitor,
   Notification, Operation, Position, School, Search,
-  Umbrella, User, Check, Moon, Sunny
+  Umbrella, User, Check, Moon, Sunny, CoffeeCup
 } from '@element-plus/icons-vue'
 import LightCard from "@/components/LightCard.vue";
 import UserInfo from "@/components/UserInfo.vue";
@@ -31,6 +31,7 @@ const userMenu = [
   }, {
     title: '个人设置', icon: Operation, sub: [
       { title: '个人信息设置', icon: User, index: '/index/user-setting' },
+      { title: '个人帖子管理', icon:  CoffeeCup, index: '/index/forum-setting' },
       { title: '账号安全设置', icon: Lock, index: '/index/privacy-setting' }
     ]
   }
