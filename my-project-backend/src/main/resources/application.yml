@@ -36,3 +36,6 @@ spring:
     multipart:
       max-request-size: 10MB
       max-file-size: 10MB
+  ai:
+    deepseek:
+      api-key: sk-0ca2801a634d470bbad1f14276ba9e3d
