@@ -11,6 +11,7 @@ import {
 import LightCard from "@/components/LightCard.vue";
 import UserInfo from "@/components/UserInfo.vue";
 import {apiNotificationDelete, apiNotificationDeleteAll, apiNotificationList} from "@/net/api/user.js";
+import AIChatWindow from "@/components/AIChatWindow.vue";
 const userMenu = [
   {
     title: '校园论坛', icon: Location, sub: [
@@ -81,6 +82,7 @@ const toggleDarkMode = () => {
 </script>
 <template>
     <div  class="main-content" v-loading="loading" element-loading-text="正在进入,请稍后..">
+      <AIChatWindow/>
       <el-container style="height: 100%" v-if="!loading">
         <el-header class="main-content-header">
           <el-image class="logo" src="/images/icon.png"></el-image>
