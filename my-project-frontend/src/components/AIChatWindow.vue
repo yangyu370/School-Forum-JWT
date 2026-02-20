@@ -1,27 +1,48 @@
 <script setup>
 import {ref} from "vue"
+import {apiChatWithAI} from "@/net/api/ai.js"
 import {CloseBold} from "@element-plus/icons-vue";
+import MarkdownIt from "markdown-it";
+const chatLoading=ref(false)
 const isOpen=ref(false)
 const inputText=ref('')
 const messages=ref([])
+const md=new MarkdownIt()
+const renderMarkdown=(text)=>{
+   return md.render(text)
+}
 const sendMessage=()=>{
-  if(inputText.value.trim()){
+  if(inputText.value.trim() && !chatLoading.value){
+    const userMessage = inputText.value
     messages.value.push({
       type:'user',
-      text:inputText.value,
+      text: userMessage,
       timestamp:new Date()
     })
-    const userInput = inputText.value
     inputText.value=''
-    
-    // 模拟AI回复
-    setTimeout(()=>{
-      messages.value.push({
-        type:'assistant',
-        text:"这是一个示例回复: " + userInput,
-        timestamp: new Date()
-      })
-    }, 500)
+    chatLoading.value=true
+
+    messages.value.push({
+      type:'assistant',
+      text:"",
+      timestamp:new Date()
+    })
+
+    const context = messages.value
+      .slice(0, -1)
+      .map(msg => ({
+        type: msg.type,
+        text: msg.text
+      }))
+    apiChatWithAI(context, text => {
+      messages.value[messages.value.length - 1].text += text
+    }, () => {
+      messages.value[messages.value.length - 1].text = '生成失败，请重试'
+      chatLoading.value = false
+    }, () => {
+      chatLoading.value = false
+    })
+
   }
 }
 </script>
@@ -40,14 +61,27 @@ const sendMessage=()=>{
          </div>
          <div class="chat-window__messages">
              <div v-for="(message,index) in messages" :key="index" :class="[`message-${message.type}`]">
-               <div class="message-text">
+               <div class="message-text" v-if="message.type==='user'">
                  {{message.text}}
+               </div>
+               <div class="message-text markdown-body" v-if="message.type==='assistant'"
+                    v-html="renderMarkdown(message.text)">
                </div>
              </div>
          </div>
          <div class="chat-window-input">
-            <input v-model="inputText" type="text" placeholder="请输入要询问的问题..." @keydown.enter="sendMessage">
-           <button class="send-btn" @click="sendMessage">发送</button>
+            <input 
+              v-model="inputText" 
+              type="text" 
+              placeholder="请输入要询问的问题..." 
+              @keydown.enter="sendMessage"
+              :disabled="chatLoading">
+           <button 
+             class="send-btn" 
+             @click="sendMessage"
+             :disabled="chatLoading">
+             {{ chatLoading ? '发送中...' : '发送' }}
+           </button>
          </div>
        </div>
    </div>
@@ -170,6 +204,11 @@ const sendMessage=()=>{
         &:focus {
           border-color: #667eea;
         }
+        
+        &:disabled {
+          background: #f5f5f5;
+          cursor: not-allowed;
+        }
       }
       
       .send-btn{
@@ -182,8 +221,12 @@ const sendMessage=()=>{
         font-size: 14px;
         transition: opacity .3s ease;
         white-space: nowrap;
-        &:hover{
+        &:hover:not(:disabled){
           opacity: 0.9;
+        }
+        &:disabled{
+          opacity: 0.6;
+          cursor: not-allowed;
         }
       }
     }
@@ -200,4 +243,10 @@ const sendMessage=()=>{
   }
 }
 
+</style>
+<style lang="less">
+ .markdown-body{
+  p:first-child{margin-top: 0}
+  p:last-child{margin-bottom: 0}
+ }
 </style>

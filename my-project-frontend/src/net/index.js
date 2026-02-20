@@ -63,6 +63,16 @@ function get(url,success,failure=defaultFailure){
 function post(url,data,success,failure=defaultFailure){
     internalPost(url,data,accessHeader(),success,failure)
 }
+function fetchPost(url,data){
+   return fetch(axios.defaults.baseURL+url,{
+       method:'POST',
+       headers: {
+           "Content-Type" : "application/json",
+           "Authorization" : `Bearer ${takeAccessToken()?.token}`
+       },
+       body : JSON.stringify(data)
+   })
+}
 function unauthorized(){
     return !takeAccessToken()
 }
@@ -94,4 +104,4 @@ function logout(success,failure=defaultFailure){
 function isRoleAdmin() {
     return  takeAccessToken()?.role === 'admin'
 }
-export {login,logout,get,unauthorized,post,accessHeader,isRoleAdmin}
+export {login,logout,get,unauthorized,post,accessHeader,isRoleAdmin,fetchPost}
