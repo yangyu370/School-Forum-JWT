@@ -23,7 +23,7 @@ public class AIServiceImpl implements AIService {
     ChatModel model;
     @Override
     public SseEmitter chatWithAI(JSONArray context) {
-        SseEmitter emitter = new SseEmitter(3000L);
+        SseEmitter emitter = new SseEmitter(5000L);
         List<? extends AbstractMessage> list = context.stream().map(item -> {
             JSONObject obj = JSONObject.from(item);
             return switch (obj.getString("type")) {
