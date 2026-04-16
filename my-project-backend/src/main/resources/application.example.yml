@@ -1,0 +1,50 @@
+spring:
+  cors-url: http://localhost:5173
+  mail:
+    host: smtp.example.com
+    username: your_email@example.com
+    password: YOUR_MAIL_APP_PASSWORD
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: YOUR_RABBITMQ_USERNAME
+    password: YOUR_RABBITMQ_PASSWORD
+    virtual-host: /
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000ms
+  security:
+    filter:
+      order: -100
+    jwt:
+      key: REPLACE_WITH_STRONG_JWT_SECRET
+      expire: 7
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/SchoolForum
+    username: YOUR_DB_USERNAME
+    password: YOUR_DB_PASSWORD
+  weather:
+    key: YOUR_QWEATHER_API_KEY
+    apiHost: YOUR_QWEATHER_API_HOST
+  minio:
+    endpoint: http://localhost:9000
+    username: YOUR_MINIO_USERNAME
+    password: YOUR_MINIO_PASSWORD
+  servlet:
+    multipart:
+      max-request-size: 10MB
+      max-file-size: 10MB
+  ai:
+    deepseek:
+      api-key: YOUR_DEEPSEEK_API_KEY
+      base-url: http://localhost:8099/chat/api/YOUR_AGENT_ID
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: YOUR_REDIS_PASSWORD
+
