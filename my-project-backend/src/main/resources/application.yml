@@ -1,4 +1,5 @@
 spring:
+  cors-url: http://localhost:5173
   mail:
     host: smtp.163.com
     username: 13607563956@163.com

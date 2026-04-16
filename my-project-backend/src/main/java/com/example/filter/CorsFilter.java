@@ -16,7 +16,8 @@ import java.io.IOException;
 @Component
 @Order(Const.ORDER_CORS)
 public class CorsFilter extends HttpFilter {
-
+    @Value("${spring.cors-url}")
+    String url;
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         this.addCorsHeader(response,request);
@@ -28,7 +29,7 @@ public class CorsFilter extends HttpFilter {
 
     }
     private void addCorsHeader(HttpServletResponse response,HttpServletRequest request) {
-         response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+         response.setHeader("Access-Control-Allow-Origin", url);
          response.setHeader("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE,OPTIONS,HEAD,PATCH,TRACE");
          response.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type");
     }
