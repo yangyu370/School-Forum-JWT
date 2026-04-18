@@ -136,4 +136,8 @@ public class ForumController {
     public RestBean<List<Topic>> userTopic(@RequestAttribute("id") int uid){
        return RestBean.success(topicService.listTopicByUser(uid));
     }
+    @GetMapping("/search-topic")
+    public RestBean<List<TopicSearchVO>> searchTopic(@RequestParam String keyword){
+        return RestBean.success(topicService.searchTopic(keyword));
+    }
 }

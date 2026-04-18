@@ -11,7 +11,13 @@ import {
 import LightCard from "@/components/LightCard.vue";
 import UserInfo from "@/components/UserInfo.vue";
 import {apiNotificationDelete, apiNotificationDeleteAll, apiNotificationList} from "@/net/api/user.js";
+import {apiForumTypes, apiTopicSearch} from "@/net/api/forum.js";
 import AIChatWindow from "@/components/AIChatWindow.vue";
+import TopicTag from "@/components/TopicTag.vue";
+import {useStore} from "@/store/index.js";
+import router from "@/router/index.js";
+
+const store = useStore()
 const userMenu = [
   {
     title: '校园论坛', icon: Location, sub: [
@@ -79,6 +85,25 @@ const toggleDarkMode = () => {
   // 保存到 localStorage
   localStorage.setItem('dark-mode', isDark.value.toString())
 }
+const searchTopic = (keyword, callback) => {
+  if(!keyword) {
+    callback([])
+    return
+  }
+  apiTopicSearch(keyword, data => {
+    callback(data)
+  })
+}
+const toTopic =({id})=>{
+  if(!id) return
+  router.push('/index/topic-detail/'+id)
+}
+apiForumTypes(data => {
+  const array = []
+  array.push({name: '全部', id: 0, color: 'linear-gradient(45deg, white, red, orange, gold, green, blue)'})
+  data.forEach(d => array.push(d))
+  store.forum.types = array
+})
 </script>
 <template>
     <div  class="main-content" v-loading="loading" element-loading-text="正在进入,请稍后..">
@@ -87,10 +112,30 @@ const toggleDarkMode = () => {
         <el-header class="main-content-header">
           <el-image class="logo" src="/images/icon.png"></el-image>
           <div style="flex: 1;padding: 0 20px;margin-top: 10px;text-align: center">
-             <el-input v-model="searchInput.text" style="width: 100%;max-width: 500px" placeholder="搜索论坛相关内容...">
+             <el-autocomplete v-model="searchInput.text" style="width: 100%;max-width: 500px"
+                              fit-input-width
+                              placeholder="搜索论坛相关内容..."
+                              @select="toTopic"
+                              :fetch-suggestions="searchTopic">
                 <template #prefix>
-                   <el-icon><Search /></el-icon>
+                   <el-icon>
+                     <Search/>
+                   </el-icon>
                 </template>
+               <template #default="{ item }">
+                   <div class="search-item">
+                      <div class="title" v-if="item.highlight.title">
+                        <topic-tag :type="item.type"/>
+                        <span v-html="item.highlight.title"></span>
+                      </div>
+                     <div class="title" v-else>
+                       <topic-tag :type="item.type"/>
+                       <span>{{item.title}}</span>
+                     </div>
+                      <div class="desc" v-if="item.highlight.intro" v-html="item.highlight.intro"></div>
+                      <div class="desc" v-else>{{item.intro}}</div>
+                   </div>
+               </template>
                <template #append>
                  <el-select v-model="searchInput.type" style="width: 120px">
                   <el-option value="1" label="帖子广场"/>
@@ -99,7 +144,7 @@ const toggleDarkMode = () => {
                  <el-option value="4" label="教务通知"/>
                  </el-select>
                </template>
-             </el-input>
+             </el-autocomplete>
           </div>
           <user-info>
             <!-- 暗黑模式切换按钮 -->
@@ -182,6 +227,36 @@ const toggleDarkMode = () => {
     </div>
 </template>
 <style lang="less" scoped>
+.search-item{
+  line-height: 1.5;
+  padding: 10px 0;
+  :deep(em) {
+    color: #1a1a1a;
+    background-color: yellow;
+    font-style: normal;
+  }
+
+  .title {
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+  }
+
+  .desc {
+    font-size: 13px;
+    white-space: pre-wrap;
+    color: gray;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+}
 .notification-item{
   transition: .3s;
   &:hover{

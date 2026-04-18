@@ -70,3 +70,4 @@ export const apiForumSaveProhibitedList=(data,success)=>
     post('/api/admin/forum/prohibited-save',data,success)
 export const apiForumUserTopic=(success)=>
     get('/api/forum/user-topic',success)
+export const apiTopicSearch=(keyword,success)=>get(`/api/forum/search-topic?keyword=${keyword}`,success)
