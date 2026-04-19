@@ -79,7 +79,7 @@ const router=createRouter({
                 ,{
                     path:'forum',
                     name:'admin-forum',
-                    component:()=>import("@/views/admin/ForumAdmin.vue")
+                    component:()=>import("@/views/admin/Forum/ForumAdmin.vue")
                 },{
                     path:'user',
                     name:'admin-user',
